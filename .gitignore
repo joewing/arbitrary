@@ -1,0 +1,5 @@
+*.ali
+*.std*
+*.o
+!obj/.keep
+obj/*

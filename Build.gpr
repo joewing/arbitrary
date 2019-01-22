@@ -1,0 +1,16 @@
+
+
+project Build is
+
+  for source_dirs use ("src", "examples" );
+  for object_dir  use "obj";
+  for exec_dir    use "bin";
+  for main        use ("examples/root2.adb", "examples/pi.adb",
+                      "examples/ln2.adb", "examples/golden_ratio.adb",
+                      "examples/e.adb");
+
+  package builder is
+    for switches ("Ada") use ( "-g", "-Og", "-gnat12", "-gnatf" );
+  end builder;
+
+end Build;
