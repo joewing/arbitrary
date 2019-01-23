@@ -203,7 +203,6 @@ package body Arbitrary is
         return false;
       end if;
       return true;
-
     elsif a.exponent < b.exponent then
       if a.sign < 0 then
         return true;
@@ -280,7 +279,6 @@ package body Arbitrary is
 
           <<continue_loop1>>
         end loop;
-
       else
         for x in a.mantissa'range loop
           if a.mantissa(x) = 0 then
@@ -330,12 +328,11 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   function One_Over_Factorial(n : integer; precision : integer)
     return Arbitrary_Type is
-    result    : Arbitrary_Type(precision);
+    result    : Arbitrary_Type(precision) := To_Arbitrary(1, precision);
   begin
     if n < 0 then
       raise Constraint_Error;
     end if;
-    result := To_Arbitrary(1, precision);
     for x in 2 .. n loop
       result := result / To_Arbitrary(x, precision);
     end loop;
@@ -346,18 +343,17 @@ package body Arbitrary is
   -- Compute the square root of n to precision digits
   -----------------------------------------------------------------------
   function Square_Root(a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type(a.precision);
-    last      : Arbitrary_Type(a.precision);
-    two      : constant Arbitrary_Type(a.precision) :=
+    result  : Arbitrary_Type(a.precision) := To_Arbitrary(1, a.precision);
+    last1   : Arbitrary_Type(a.precision);
+    two     : constant Arbitrary_Type(a.precision) :=
               To_Arbitrary(2, a.precision);
   begin
     -- x(i) = (x(i-1) + n / x(i-1)) / 2
-    result := To_Arbitrary(1, a.precision);
     loop
-      last := result;
+      last1 := result;
       result := result + a / result;
       result := result / two;
-      exit when last = result;
+      exit when last1 = result;
     end loop;
     return result;
   end Square_Root;
@@ -374,9 +370,8 @@ package body Arbitrary is
   -- Negate a
   -----------------------------------------------------------------------
   function "-"(a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type(a.precision);
+    result    : Arbitrary_Type(a.precision) := a;
   begin
-    result := a;
     result.sign := -result.sign;
     return result;
   end "-";
