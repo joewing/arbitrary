@@ -2,6 +2,8 @@
 -- Arbitrary Precision Math Library
 -- Joe Wingbermuehle 20020320 <> 20020327
 --------------------------------------------------------------------------
+pragma Ada_2012;
+pragma Detect_Blocking;
 
 with Ada.Finalization;
 
@@ -13,7 +15,7 @@ package Arbitrary is
 	type Arbitrary_Type(size : positive) is
 		new Ada.Finalization.Controlled with private;
 
-	procedure Display(a : Arbitrary_Type);
+	function to_str (a : Arbitrary_Type)  return String;
 	procedure Clear(a : out Arbitrary_Type);
 
 	function To_Arbitrary(value : integer; precision : integer)
@@ -41,8 +43,6 @@ package Arbitrary is
 	function "-"(a, b : Arbitrary_Type) return Arbitrary_Type;
 	function "*"(a, b : Arbitrary_Type) return Arbitrary_Type;
 	function "/"(a, b : Arbitrary_Type) return Arbitrary_Type;
-
-  function to_str (a : Arbitrary_Type)  return String;
 
 private
 

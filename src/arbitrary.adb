@@ -3,8 +3,14 @@
 -- Joe Wingbermuehle 20020320 <> 20020327
 --------------------------------------------------------------------------
 
+
+pragma Ada_2012;
+pragma Detect_Blocking;
+
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
+
+
 
 package body Arbitrary is
 
@@ -80,6 +86,7 @@ package body Arbitrary is
       := (others => 0);
     a.exponent := a.exponent + by;
   end Shift_Right;
+
   -----------------------------------------------------------------------
   -- Fix overflows, underflows, and sign changes
   -----------------------------------------------------------------------
@@ -87,6 +94,7 @@ package body Arbitrary is
     changed    : boolean := true;
     temp      : integer;
     carry      : integer;
+    left_carry : Natural := 0;
   begin
     -- Zero is a special case
     temp := a.mantissa'first;
@@ -109,11 +117,14 @@ package body Arbitrary is
           a.mantissa(x - 1) := a.mantissa(x - 1) + temp / base;
           changed := true;
         end if;
-        while a.mantissa(x) < 0 loop
-          a.mantissa(x) := a.mantissa(x) + base;
-          a.mantissa(x - 1) := a.mantissa(x - 1) - 1;
+        if a.mantissa(x) < 0 then
           changed := true;
-        end loop;
+          loop
+            exit when a.mantissa(x) >= 0;
+            a.mantissa(x) := a.mantissa(x) + base;
+            a.mantissa(x - 1) := a.mantissa(x - 1) - 1;
+          end loop;
+        end if;
       end loop;
       if a.mantissa(a.mantissa'first) >= base then
         carry := a.mantissa(a.mantissa'first) / base;
@@ -130,30 +141,17 @@ package body Arbitrary is
         a.sign := -a.sign;
         changed := true;
       end if;
-      while a.mantissa(a.mantissa'first) = 0 loop
-        Shift_Left(a);
+      if a.mantissa(a.mantissa'first) = 0 then
         changed := true;
-      end loop;
+        for x in a.mantissa'range loop
+          exit when a.mantissa(x) /= 0;
+          left_carry  := left_carry + 1;
+        end loop;
+        Shift_Left(a, left_carry);
+        left_carry := 0;
+      end if;
     end loop;
   end Normalize;
-
-  -----------------------------------------------------------------------
-  -- Display an Arbitrary_Type
-  -----------------------------------------------------------------------
-  procedure Display(a : Arbitrary_Type) is
-  begin
-    if a.sign < 0 then
-      Put("-");
-    end if;
-    Put(character'val(a.mantissa(a.mantissa'first) + character'pos('0')));
-    Put(".");
-    for x in a.mantissa'first + 1 .. a.mantissa'last loop
-      Put(character'val(a.mantissa(x) + character'pos('0')));
-    end loop;
-    if a.exponent /= 0 then
-      Put(" E" & a.exponent'img);
-    end if;
-  end Display;
 
   -----------------------------------------------------------------------
   -- Set an Arbitrary_Type to zero
