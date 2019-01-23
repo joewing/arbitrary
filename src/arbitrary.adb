@@ -64,10 +64,10 @@ package body Arbitrary is
   procedure Shift_Left (a : in out Arbitrary_Type; by : Positive := 1) is
   begin
     -- ? remove ".all" ? :-)
-    a.mantissa.all (a.mantissa.all'First .. a.mantissa.all'Last - by)
-      := a.mantissa.all (a.mantissa.all'First + by .. a.mantissa.all'Last);
+    a.mantissa(a.mantissa'First .. a.mantissa'Last - by)
+      := a.mantissa (a.mantissa'First + by .. a.mantissa'Last);
 
-    a.mantissa.all (a.mantissa.all'Last - by + 1 .. a.mantissa.all'Last)
+    a.mantissa(a.mantissa'Last - by + 1 .. a.mantissa'Last)
       := (others => 0);
     a.exponent := a.exponent - by;
   end Shift_Left;
@@ -79,10 +79,10 @@ package body Arbitrary is
 
   procedure Shift_Right (a : in out Arbitrary_Type; by : Positive := 1) is
   begin
-    a.mantissa.all (a.mantissa'First + by .. a.mantissa'Last)
-      :=  a.mantissa.all (a.mantissa.all'First .. a.mantissa.all'Last - by);
+    a.mantissa (a.mantissa'First + by .. a.mantissa'Last)
+      :=  a.mantissa (a.mantissa'First .. a.mantissa'Last - by);
 
-    a.mantissa.all (a.mantissa'First .. (a.mantissa'First + by) - 1)
+    a.mantissa (a.mantissa'First .. (a.mantissa'First + by) - 1)
       := (others => 0);
     a.exponent := a.exponent + by;
   end Shift_Right;
