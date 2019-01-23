@@ -37,11 +37,9 @@ package body Arbitrary is
   procedure Adjust(object : in out Arbitrary_Type) is
     temp    : Mantissa_Pointer;
   begin
-    temp := new Mantissa_Type(1..object.precision);
-    -- for x in object.mantissa'range loop
-    --   temp(x) := object.mantissa(x);
-    -- end loop;
-    temp.all := object.mantissa.all; -- ? add a object.mantissa.all /= null ?
+    -- temp := new Mantissa_Type(1..object.precision);
+    temp := new Mantissa_Type'(object.mantissa.all);
+    -- temp.all := object.mantissa.all; -- ? add a object.mantissa.all /= null ?
     object.mantissa := temp;
   end Adjust;
 
