@@ -22,9 +22,8 @@ begin
 
 		result := Golden_Ratio(precision);
 
-		Display(result);
+		Put_line (to_str (result));
 
 	end;
 
 end Golden_Ratio;
-

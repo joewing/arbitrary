@@ -21,8 +21,7 @@ begin
 		result		: Arbitrary_Type(precision);
 	begin
 		result := Square_Root(To_Arbitrary(2, precision));
-		Display(result);
+		Put_line (to_str (result));
 	end;
 
 end Root2;
-

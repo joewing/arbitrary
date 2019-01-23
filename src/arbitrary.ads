@@ -42,6 +42,8 @@ package Arbitrary is
 	function "*"(a, b : Arbitrary_Type) return Arbitrary_Type;
 	function "/"(a, b : Arbitrary_Type) return Arbitrary_Type;
 
+  function to_str (a : Arbitrary_Type)  return String;
+
 private
 
 	base		: constant integer := 10;
@@ -61,5 +63,5 @@ private
 	procedure Adjust(Object : in out Arbitrary_Type);
 	procedure Finalize(Object : in out Arbitrary_Type);
 
-end Arbitrary;
 
+end Arbitrary;

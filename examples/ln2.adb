@@ -20,8 +20,7 @@ begin
 		result		: Arbitrary_Type(precision);
 	begin
 		result := Ln2(precision);
-		Display(result);
+		Put_line (to_str (result));
 	end;
 
 end Ln2;
-

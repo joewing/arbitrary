@@ -27,9 +27,8 @@ begin
 	begin
 
 		result := Pi(precision);
-		Display(result);
+		Put_line (to_str (result));
 
 	end;
 
 end Pi;
-

@@ -22,10 +22,8 @@ begin
 
 		result := Exp(To_Arbitrary(1, precision));
 
-		Display(result);
+		Put_line (to_str (result));
 
 	end;
 
 end E;
-
-
