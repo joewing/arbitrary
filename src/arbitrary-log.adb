@@ -3,6 +3,9 @@
 -- Joe Wingbermuehle 20020320 <> 20020327
 --------------------------------------------------------------------------
 
+pragma Ada_2012;
+pragma Detect_Blocking;
+
 with Arbitrary.Trig; use Arbitrary.Trig;
 
 package body Arbitrary.Log is
@@ -11,19 +14,23 @@ package body Arbitrary.Log is
 	-- Compute e^n
 	-----------------------------------------------------------------------
 	function Exp(a : Arbitrary_Type) return Arbitrary_Type is
-		result		: Arbitrary_Type(a.precision);
-		multiplier	: Arbitrary_Type(a.precision);
-		last			: Arbitrary_Type(a.precision);
-		count			: integer;
+		result		  : Arbitrary_Type    := To_Arbitrary(2, a.precision);
+		multiplier	: Arbitrary_Type    := a;
+		nlast			  : Arbitrary_Type(a.precision);
+		count			  : integer           := 2;
 	begin
-		result := To_Arbitrary(2, a.precision);
-		count := 2;
-		multiplier := a;
 		loop
-			last := result;
+			nlast := result;
 			result := result + multiplier
 				* One_Over_Factorial(count, a.precision);
-			exit when last = result;
+			exit when nlast = result;
+			count := count + 1;
+			multiplier := multiplier * multiplier;
+
+			nlast := result;
+			result := result + multiplier
+				* One_Over_Factorial(count, a.precision);
+			exit when nlast = result;
 			count := count + 1;
 			multiplier := multiplier * multiplier;
 		end loop;
@@ -34,24 +41,26 @@ package body Arbitrary.Log is
 	-- Compute ln(2)
 	-----------------------------------------------------------------------
 	function Ln2(precision : integer) return Arbitrary_Type is
-		result		: Arbitrary_Type(precision);
-		last			: Arbitrary_Type(precision);
-		multiplier	: Arbitrary_Type(precision);
-		count			: Arbitrary_Type(precision);
-		over_two		: constant Arbitrary_Type(precision) :=
-						To_Arbitrary(1, precision) / To_Arbitrary(2, precision);
-		one			: constant Arbitrary_Type(precision) :=
-						To_Arbitrary(1, precision);
+		result		  : Arbitrary_Type(precision);
+		nlast       : Arbitrary_Type(precision);
+		over_two		: constant Arbitrary_Type -- 1/2^1 (1/2^x)
+      :=  To_Arbitrary(1, precision) / To_Arbitrary(2, precision);
+		one			    : constant Arbitrary_Type(precision)
+      :=  To_Arbitrary(1, precision);
+    multiplier	: Arbitrary_Type := over_two;
+    count			  : Arbitrary_Type := one;
 	begin
-
 		-- ln(2) = sum(1/(x*2^x))
-
-		multiplier := over_two;	-- 1/2^1 (1/2^x)
-		count := one;
 		loop
-			last := result;
-			result := result + multiplier / count;
-			exit when last = result;
+			nlast := result;
+			result := result + (multiplier / count);
+			exit when nlast = result;
+			multiplier := multiplier * over_two;
+			count := count + one;
+
+			nlast := result;
+			result := result + (multiplier / count);
+			exit when nlast = result;
 			multiplier := multiplier * over_two;
 			count := count + one;
 		end loop;
@@ -64,28 +73,26 @@ package body Arbitrary.Log is
 	-- (convergence is too slow for larger values)
 	-----------------------------------------------------------------------
 	function Ln_Small(a : Arbitrary_Type) return Arbitrary_Type is
-		result		: Arbitrary_Type(a.precision);
-		temp			: Arbitrary_Type(a.precision);
-		last			: Arbitrary_Type(a.precision);
-		count			: Arbitrary_Type(a.precision);
-		term			: Arbitrary_Type(a.precision);
-		one			: constant Arbitrary_Type(a.precision) :=
-							To_Arbitrary(1, a.precision);
-		sign			: integer range -1 .. 1;
+    one     : constant  Arbitrary_Type  :=	To_Arbitrary(1, a.precision);
+    temp    : Arbitrary_Type            :=  a - one;
+    term		: Arbitrary_Type            :=  temp;
+    count		: Arbitrary_Type            :=  one;
+		result	: Arbitrary_Type(a.precision);
+		nlast		: Arbitrary_Type(a.precision);
+		sign		: integer range -1 .. 1     :=  1;
 	begin
 		-- ln(1 + x) = x - (1/2)x^2 + (1/3)x^3 - ...
-		temp := a - one;
-		term := temp;
-		count := one;
-		sign := 1;
 		loop
-			last := result;
-			if sign > 0 then
-				result := result + term / count;
-			else
-				result := result - term / count;
-			end if;
-			exit when last = result;
+			nlast := result; -- "/" highest prececende than "+" and "-"
+      result := result + (if sign > 0 then term / count else -(term / count));
+			exit when nlast = result;
+			count := count + one;
+			term := term * temp;
+			sign := -sign;
+
+			nlast := result; -- "/" highest prececende than "+" and "-"
+      result := result + (if sign > 0 then term / count else -(term / count));
+			exit when nlast = result;
 			count := count + one;
 			term := term * temp;
 			sign := -sign;
@@ -97,20 +104,16 @@ package body Arbitrary.Log is
 	-- Compute ln(x)
 	-----------------------------------------------------------------------
 	function Ln(a : Arbitrary_Type) return Arbitrary_Type is
-		one			: constant Arbitrary_Type(a.precision) :=
-							To_Arbitrary(1, a.precision);
-		two			: constant Arbitrary_Type(a.precision) :=
-							To_Arbitrary(2, a.precision);
+		one   : constant  Arbitrary_Type  :=  To_Arbitrary(1, a.precision);
+		two   : constant  Arbitrary_Type  :=  To_Arbitrary(2, a.precision);
 	begin
 		-- ln(x) = 2*acoth(x - 1) + ln(x - 2)
 		if a > two then
 			return two * ArcCoth(a - one) + Ln(a - two);
 		elsif a = two then
 			return Ln2(a.precision);
-		else
-			return Ln_Small(a);
-		end if;
+    end if;
+		return Ln_Small(a);
 	end Ln;
 
 end Arbitrary.Log;
-

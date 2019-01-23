@@ -3,6 +3,9 @@
 -- Joe Wingbermuehle 20020320 <> 20020327
 --------------------------------------------------------------------------
 
+pragma Ada_2012;
+pragma Detect_Blocking;
+
 with Arbitrary.Log; use Arbitrary.Log;
 with Arbitrary.Const; use Arbitrary.Const;
 
@@ -58,7 +61,7 @@ package body Arbitrary.Trig is
 		result := one;
 		count := To_Arbitrary(2, a.precision);
 		term := a * a / count;
-		sign := -1;	
+		sign := -1;
 		loop
 			last := result;
 			if sign > 0 then
@@ -444,4 +447,3 @@ package body Arbitrary.Trig is
 	end ArcCoth;
 
 end Arbitrary.Trig;
-

@@ -3,8 +3,11 @@
 -- Joe Wingbermuehe 20020320 <> 20020327
 --------------------------------------------------------------------------
 
+pragma Ada_2012;
+pragma Detect_Blocking;
+
 package Arbitrary.Trig is
-	
+
 	function Sin(a : Arbitrary_Type) return Arbitrary_Type;
 	function Cos(a : Arbitrary_Type) return Arbitrary_Type;
 	function Tan(a : Arbitrary_Type) return Arbitrary_Type;
@@ -34,4 +37,3 @@ package Arbitrary.Trig is
 	function ArcCoth(a : Arbitrary_Type) return Arbitrary_Type;
 
 end Arbitrary.Trig;
-
