@@ -32,10 +32,11 @@ package body Arbitrary is
   -- Fix an Arbitrary_Type after being assigned a value
   -----------------------------------------------------------------------
   procedure Adjust(object : in out Arbitrary_Type) is
-    temp    : Mantissa_Pointer;
+    -- temp    : Mantissa_Pointer;
   begin
-    temp := new Mantissa_Type'(object.mantissa.all);
-    object.mantissa := temp;
+    -- temp := new Mantissa_Type'(object.mantissa.all);
+    -- object.mantissa := temp;
+    object.mantissa := new Mantissa_Type'(object.mantissa.all);
   end Adjust;
 
   -----------------------------------------------------------------------
