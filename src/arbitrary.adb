@@ -25,9 +25,6 @@ package body Arbitrary is
     object.mantissa := new Mantissa_Type (1..object.precision);
     object.exponent := 0;
     object.sign := 1;
-    -- for x in object.mantissa'range loop
-    --   object.mantissa(x) := 0;
-    -- end loop;
     object.mantissa.all := (others => 0);
   end Initialize;
 
@@ -37,9 +34,7 @@ package body Arbitrary is
   procedure Adjust(object : in out Arbitrary_Type) is
     temp    : Mantissa_Pointer;
   begin
-    -- temp := new Mantissa_Type(1..object.precision);
     temp := new Mantissa_Type'(object.mantissa.all);
-    -- temp.all := object.mantissa.all; -- ? add a object.mantissa.all /= null ?
     object.mantissa := temp;
   end Adjust;
 
@@ -61,7 +56,6 @@ package body Arbitrary is
 
   procedure Shift_Left (a : in out Arbitrary_Type; by : Positive := 1) is
   begin
-    -- ? remove ".all" ? :-)
     a.mantissa(a.mantissa'First .. a.mantissa'Last - by)
       := a.mantissa (a.mantissa'First + by .. a.mantissa'Last);
 
@@ -207,31 +201,32 @@ package body Arbitrary is
     elsif a.exponent > b.exponent then
       if a.sign < 0 then
         return false;
-      else
-        return true;
       end if;
+      return true;
+
     elsif a.exponent < b.exponent then
       if a.sign < 0 then
         return true;
-      else
-        return false;
       end if;
+      return false;
     else
       if a.sign < 0 then
         for x in a.mantissa'range loop
-          if a.mantissa(x) < b.mantissa(x) then
-            return true;
-          elsif a.mantissa(x) > b.mantissa(x) then
-            return false;
+          if a.mantissa(x) = 0 then
+            goto continue_loop1;
           end if;
+          return (if a.mantissa(x) < b.mantissa(x) then true else false);
+
+          <<continue_loop1>>
         end loop;
       else
         for x in a.mantissa'range loop
-          if a.mantissa(x) > b.mantissa(x) then
-            return true;
-          elsif a.mantissa(x) < b.mantissa(x) then
-            return false;
+          if a.mantissa(x) = 0 then
+            goto continue_loop2;
           end if;
+          return (if a.mantissa(x) > b.mantissa(x) then true else false);
+
+          <<continue_loop2>>
         end loop;
       end if;
       return false;
@@ -248,42 +243,7 @@ package body Arbitrary is
         raise Constraint_Error;
       end if;
     end if;
-    if a.sign < 0 and b.sign > 0 then
-      return false;
-    elsif a.sign > 0 and b.sign < 0 then
-      return true;
-    elsif a.exponent > b.exponent then
-      if a.sign < 0 then
-        return false;
-      else
-        return true;
-      end if;
-    elsif a.exponent < b.exponent then
-      if a.sign < 0 then
-        return true;
-      else
-        return false;
-      end if;
-    else
-      if a.sign < 0 then
-        for x in a.mantissa'range loop
-          if a.mantissa(x) < b.mantissa(x) then
-            return true;
-          elsif a.mantissa(x) > b.mantissa(x) then
-            return false;
-          end if;
-        end loop;
-      else
-        for x in a.mantissa'range loop
-          if a.mantissa(x) > b.mantissa(x) then
-            return true;
-          elsif a.mantissa(x) < b.mantissa(x) then
-            return false;
-          end if;
-        end loop;
-      end if;
-      return true;
-    end if;
+    return (a = b) or else (a > b);
   end ">=";
 
   -----------------------------------------------------------------------
@@ -303,31 +263,32 @@ package body Arbitrary is
     elsif a.exponent < b.exponent then
       if a.sign < 0 then
         return false;
-      else
-        return true;
       end if;
+      return true;
     elsif a.exponent > b.exponent then
       if a.sign < 0 then
         return true;
-      else
-        return false;
       end if;
+      return false;
     else
       if a.sign < 0 then
         for x in a.mantissa'range loop
-          if a.mantissa(x) > b.mantissa(x) then
-            return true;
-          elsif a.mantissa(x) < b.mantissa(x) then
-            return false;
+          if a.mantissa(x) = 0 then
+            goto continue_loop1;
           end if;
+          return (if a.mantissa(x) > b.mantissa(x) then true else false);
+
+          <<continue_loop1>>
         end loop;
+
       else
         for x in a.mantissa'range loop
-          if a.mantissa(x) < b.mantissa(x) then
-            return true;
-          elsif a.mantissa(x) > b.mantissa(x) then
-            return false;
+          if a.mantissa(x) = 0 then
+            goto continue_loop2;
           end if;
+          return (if a.mantissa(x) < b.mantissa(x) then true else false);
+
+          <<continue_loop2>>
         end loop;
       end if;
       return false;
@@ -344,42 +305,7 @@ package body Arbitrary is
         raise Constraint_Error;
       end if;
     end if;
-    if a.sign < 0 and b.sign > 0 then
-      return true;
-    elsif a.sign > 0 and b.sign < 0 then
-      return false;
-    elsif a.exponent < b.exponent then
-      if a.sign < 0 then
-        return false;
-      else
-        return true;
-      end if;
-    elsif a.exponent > b.exponent then
-      if a.sign < 0 then
-        return true;
-      else
-        return false;
-      end if;
-    else
-      if a.sign < 0 then
-        for x in a.mantissa'range loop
-          if a.mantissa(x) > b.mantissa(x) then
-            return true;
-          elsif a.mantissa(x) < b.mantissa(x) then
-            return false;
-          end if;
-        end loop;
-      else
-        for x in a.mantissa'range loop
-          if a.mantissa(x) < b.mantissa(x) then
-            return true;
-          elsif a.mantissa(x) > b.mantissa(x) then
-            return false;
-          end if;
-        end loop;
-      end if;
-      return true;
-    end if;
+    return (a = b) or else (a < b);
   end "<=";
 
   -----------------------------------------------------------------------
@@ -387,12 +313,12 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   function Factorial(n : integer; precision : integer)
     return Arbitrary_Type is
-    result    : Arbitrary_Type(precision);
+    result    : Arbitrary_Type(precision) := To_Arbitrary(1, precision);
   begin
     if n < 0 then
       raise Constraint_Error;
     end if;
-    result := To_Arbitrary(1, precision);
+
     for x in 2 .. n loop
       result := result * To_Arbitrary(x, precision);
     end loop;
