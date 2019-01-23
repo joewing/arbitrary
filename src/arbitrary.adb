@@ -202,9 +202,9 @@ package body Arbitrary is
         raise Constraint_Error;
       end if;
     end if;
-    if a.sign < 0 and b.sign > 0 then
+    if    a.sign < 0 and then b.sign > 0 then
       return false;
-    elsif a.sign > 0 and b.sign < 0 then
+    elsif a.sign > 0 and then b.sign < 0 then
       return true;
     elsif a.exponent > b.exponent then
       if a.sign < 0 then
@@ -226,16 +226,17 @@ package body Arbitrary is
 
           <<continue_loop1>>
         end loop;
-      else
-        for x in a.mantissa'range loop
-          if a.mantissa(x) = 0 then
-            goto continue_loop2;
-          end if;
-          return (if a.mantissa(x) > b.mantissa(x) then true else false);
-
-          <<continue_loop2>>
-        end loop;
+        return false;
       end if;
+
+      for x in a.mantissa'range loop
+        if a.mantissa(x) = 0 then
+          goto continue_loop2;
+        end if;
+        return (if a.mantissa(x) > b.mantissa(x) then true else false);
+
+        <<continue_loop2>>
+      end loop;
       return false;
     end if;
   end ">";
