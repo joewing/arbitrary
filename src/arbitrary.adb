@@ -94,12 +94,12 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   procedure Normalize(a : in out Arbitrary_Type) is
     changed    : boolean := true;
-    temp      : integer;
-    carry      : integer;
+    temp       : integer := a.mantissa'first;
+    carry      : integer := 0;
+    z          : integer := 0;
     left_carry : Natural := 0;
   begin
     -- Zero is a special case
-    temp := a.mantissa'first;
     while temp <= a.mantissa'last loop
       exit when a.mantissa(temp) /= 0;
       temp := temp + 1;
@@ -113,19 +113,17 @@ package body Arbitrary is
     while changed loop
       changed := false;
       for x in a.mantissa'first + 1 .. a.mantissa'last loop
-        if a.mantissa(x) >= base then
+        if a.mantissa(x) >= base then -- ? :-) ?
           temp := a.mantissa(x);
-          a.mantissa(x) := temp mod base;
+          a.mantissa(x) := temp mod base; -- ? a factorial type ? :-)
           a.mantissa(x - 1) := a.mantissa(x - 1) + temp / base;
           changed := true;
         end if;
         if a.mantissa(x) < 0 then
+          z := integer (Float'Ceiling ( Float (-a.mantissa(x)) / fbase));
+          a.mantissa(x) := a.mantissa(x) + (z * base);
+          a.mantissa(x - 1) := a.mantissa(x - 1) - z;
           changed := true;
-          loop
-            exit when a.mantissa(x) >= 0;
-            a.mantissa(x) := a.mantissa(x) + base;
-            a.mantissa(x - 1) := a.mantissa(x - 1) - 1;
-          end loop;
         end if;
       end loop;
       if a.mantissa(a.mantissa'first) >= base then

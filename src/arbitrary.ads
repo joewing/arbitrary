@@ -47,7 +47,10 @@ package Arbitrary is
 private
 
 	base		: constant integer := 10;
-  
+	fbase		: constant Float   := Float (base);
+
+  -- type floor_ceil_fixed is delta 10.0**(-9) digits 18;
+
 	type Mantissa_Type is array(positive range <>) of integer;
 	type Mantissa_Pointer is access Mantissa_Type;
 
