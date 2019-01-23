@@ -159,9 +159,7 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   procedure Clear(a : out Arbitrary_Type) is
   begin
-    for x in a.mantissa'range loop
-      a.mantissa(x) := 0;
-    end loop;
+    a.mantissa.all := (others => 0);
     a.exponent := 0;
     a.sign := 1;
   end Clear;
@@ -183,18 +181,15 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   function "="(a, b : Arbitrary_Type) return boolean is
   begin
-    if a.precision = b.precision
-      and a.exponent = b.exponent
-      and a.sign = b.sign then
-      for x in a.mantissa'first..a.mantissa'last loop
-        if a.mantissa(x) /= b.mantissa(x) then
-          return false;
-        end if;
-      end loop;
+    if          a.precision = b.precision
+      and then  a.exponent = b.exponent
+      and then  a.sign = b.sign
+      and then  a.mantissa.all = b.mantissa.all
+    then
       return true;
-    else
-      return false;
     end if;
+
+    return false;
   end "=";
 
   -----------------------------------------------------------------------
