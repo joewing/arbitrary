@@ -70,12 +70,18 @@ package body Arbitrary is
   procedure Shift_Right (a : in out Arbitrary_Type; by : Positive := 1);
 
   procedure Shift_Right (a : in out Arbitrary_Type; by : Positive := 1) is
+    bigger  : constant Boolean := by > a.mantissa'Length;
   begin
-    a.mantissa (a.mantissa'First + by .. a.mantissa'Last)
-      :=  a.mantissa (a.mantissa'First .. a.mantissa'Last - by);
+    if bigger then
+      a.mantissa.all := (others => 0);
+    else
+      a.mantissa (a.mantissa'First + by .. a.mantissa'Last)
+        :=  a.mantissa (a.mantissa'First .. a.mantissa'Last - by);
 
-    a.mantissa (a.mantissa'First .. (a.mantissa'First + by) - 1)
-      := (others => 0);
+      a.mantissa (a.mantissa'First .. (a.mantissa'First + by) - 1)
+        := (others => 0);
+    end if;
+
     a.exponent := a.exponent + by;
   end Shift_Right;
 
@@ -380,7 +386,7 @@ package body Arbitrary is
   -- Compute a + b
   -----------------------------------------------------------------------
   function "+"(a, b : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type(a.precision);
+    result      : Arbitrary_Type(a.precision);
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
@@ -406,17 +412,18 @@ package body Arbitrary is
     -- Set result to the additive with the least exponent and shift
     if a.exponent > b.exponent then
       result := b;
-      for x in b.exponent .. a.exponent - 1 loop
-        Shift_Right(result);
-      end loop;
-      for x in result.mantissa'range loop
+      Shift_Right(result, abs (b.exponent - a.exponent));
+
+      for x in result.mantissa'range loop -- ?
         result.mantissa(x) := result.mantissa(x) + a.mantissa(x);
       end loop;
     else
       result := a;
-      for x in a.exponent .. b.exponent - 1 loop
-        Shift_Right(result);
-      end loop;
+
+      if a.exponent /= b.exponent then
+        Shift_Right(result, abs (b.exponent - a.exponent)); -- <-- need more tests
+      end if;
+
       for x in result.mantissa'range loop
         result.mantissa(x) := result.mantissa(x) + b.mantissa(x);
       end loop;
