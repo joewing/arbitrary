@@ -53,24 +53,13 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   -- Shift mantissa left one digit and preserve the value
   -----------------------------------------------------------------------
-  -- procedure Shift_Left(a : in out Arbitrary_Type) is
-  -- begin
-  --   for x in a.mantissa'first + 1..a.mantissa'last loop
-  --     a.mantissa(x - 1) := a.mantissa(x);
-  --   end loop;
-  --   a.mantissa(a.mantissa'last) := 0;
-  --   a.exponent := a.exponent - 1;
-  -- end Shift_Left;
   procedure Shift_Left (a : in out Arbitrary_Type; by : Positive := 1);
 
   procedure Shift_Left (a : in out Arbitrary_Type; by : Positive := 1) is
-    -- by2       : constant Natural := (if by > 0 then by else 1);
-    data_tmp  : constant Mantissa_Type :=
-      a.mantissa.all (a.mantissa.all'First + by .. a.mantissa.all'Last);
   begin
-
+    -- ? remove ".all" ? :-)
     a.mantissa.all (a.mantissa.all'First .. a.mantissa.all'Last - by)
-      := data_tmp;
+      := a.mantissa.all (a.mantissa.all'First + by .. a.mantissa.all'Last);
 
     a.mantissa.all (a.mantissa.all'Last - by + 1 .. a.mantissa.all'Last)
       := (others => 0);
@@ -80,15 +69,17 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   -- Shift the mantissa right one digit and preserve the value
   -----------------------------------------------------------------------
-  procedure Shift_Right(a : in out Arbitrary_Type) is
-  begin
-    for x in reverse a.mantissa'first..a.mantissa'last - 1 loop
-      a.mantissa(x + 1) := a.mantissa(x);
-    end loop;
-    a.mantissa(a.mantissa'first) := 0;
-    a.exponent := a.exponent + 1;
-  end Shift_Right;
+  procedure Shift_Right (a : in out Arbitrary_Type; by : Positive := 1);
 
+  procedure Shift_Right (a : in out Arbitrary_Type; by : Positive := 1) is
+  begin
+    a.mantissa.all (a.mantissa'First + by .. a.mantissa'Last)
+      :=  a.mantissa.all (a.mantissa.all'First .. a.mantissa.all'Last - by);
+
+    a.mantissa.all (a.mantissa'First .. (a.mantissa'First + by) - 1)
+      := (others => 0);
+    a.exponent := a.exponent + by;
+  end Shift_Right;
   -----------------------------------------------------------------------
   -- Fix overflows, underflows, and sign changes
   -----------------------------------------------------------------------

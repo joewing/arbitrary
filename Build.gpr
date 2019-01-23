@@ -10,7 +10,7 @@ project Build is
                       "examples/e.adb");
 
   package builder is
-    for switches ("Ada") use ( "-g", "-Og", "-gnat12", "-gnatf" );
+    for switches ("Ada") use ( "-Ofast", "-gnat12", "-gnatf" );
   end builder;
 
 end Build;
