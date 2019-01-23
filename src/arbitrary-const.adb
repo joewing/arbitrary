@@ -34,14 +34,12 @@ package body Arbitrary.Const is
 	-- Compute precision digits of the golen ratio
 	-----------------------------------------------------------------------
 	function Golden_Ratio(precision : integer) return Arbitrary_Type is
-		result		: Arbitrary_Type(precision);
+		result		: Arbitrary_Type := To_Arbitrary(1, precision);
 	begin
-		-- golen_ratio = (1 + sqrt(5)) / 2
-		result := To_Arbitrary(1, precision);
+		-- golden_ratio = (1 + sqrt(5)) / 2
 		result := result + Square_Root(To_Arbitrary(5, precision));
 		result := result / To_Arbitrary(2, precision);
 		return result;
 	end Golden_Ratio;
 
 end Arbitrary.Const;
-

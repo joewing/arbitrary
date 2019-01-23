@@ -421,7 +421,7 @@ package body Arbitrary is
       result := a;
 
       if a.exponent /= b.exponent then
-        Shift_Right(result, abs (b.exponent - a.exponent)); -- <-- need more tests
+        Shift_Right(result, abs (b.exponent - a.exponent)); -- <-- need more tests :-)
       end if;
 
       for x in result.mantissa'range loop
@@ -458,17 +458,15 @@ package body Arbitrary is
 
     if a.exponent > b.exponent then
       result := b;
-      for x in b.exponent .. a.exponent - 1 loop
-        Shift_Right(result);
-      end loop;
+      Shift_Right(result, abs (b.exponent - a.exponent));
       for x in result.mantissa'range loop
         result.mantissa(x) := a.mantissa(x) - result.mantissa(x);
       end loop;
     else
       result := a;
-      for x in a.exponent .. b.exponent - 1 loop
-        Shift_Right(result);
-      end loop;
+      if a.exponent /= b.exponent then
+        Shift_Right(result, abs (b.exponent - a.exponent)); -- <-- need more tests :-)
+      end if;
       for x in result.mantissa'range loop
         result.mantissa(x) := result.mantissa(x) - b.mantissa(x);
       end loop;
