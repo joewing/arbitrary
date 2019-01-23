@@ -47,7 +47,7 @@ package Arbitrary is
 private
 
 	base		: constant integer := 10;
-
+  
 	type Mantissa_Type is array(positive range <>) of integer;
 	type Mantissa_Pointer is access Mantissa_Type;
 

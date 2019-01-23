@@ -25,6 +25,7 @@ package body Arbitrary is
     object.mantissa := new Mantissa_Type (1..object.precision);
     object.exponent := 0;
     object.sign := 1;
+    -- "here" for diminish race condition from OS' s
     object.mantissa.all := (others => 0);
   end Initialize;
 
@@ -32,10 +33,7 @@ package body Arbitrary is
   -- Fix an Arbitrary_Type after being assigned a value
   -----------------------------------------------------------------------
   procedure Adjust(object : in out Arbitrary_Type) is
-    -- temp    : Mantissa_Pointer;
   begin
-    -- temp := new Mantissa_Type'(object.mantissa.all);
-    -- object.mantissa := temp;
     object.mantissa := new Mantissa_Type'(object.mantissa.all);
   end Adjust;
 
@@ -323,7 +321,7 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   function Factorial(n : integer; precision : integer)
     return Arbitrary_Type is
-    result    : Arbitrary_Type(precision) := To_Arbitrary(1, precision);
+    result    : Arbitrary_Type := To_Arbitrary(1, precision);
   begin
     if n < 0 then
       raise Constraint_Error;
@@ -340,13 +338,13 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   function One_Over_Factorial(n : integer; precision : integer)
     return Arbitrary_Type is
-    result    : Arbitrary_Type(precision) := To_Arbitrary(1, precision);
+    result    : Arbitrary_Type := To_Arbitrary(1, precision);
   begin
     if n < 0 then
       raise Constraint_Error;
     end if;
     for x in 2 .. n loop
-      result := result / To_Arbitrary(x, precision);
+      result := result / To_Arbitrary(x, precision); -- ? unrollLoop ?
     end loop;
     return result;
   end One_Over_Factorial;
@@ -426,23 +424,27 @@ package body Arbitrary is
       m_modulo  :=  result.mantissa'Length / 4;
       remainder :=  result.mantissa'Length mod 4;
       n_index   := result.mantissa'First;
-
-      for x in 1 .. m_modulo loop  -- unroll loop
-        result.mantissa(n_index) := result.mantissa(n_index) + a.mantissa(n_index);
-        result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + a.mantissa(n_index + 1);
-        result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + a.mantissa(n_index + 2);
-        result.mantissa(n_index + 3) := result.mantissa(n_index + 3) + a.mantissa(n_index + 3);
-        n_index := n_index + 4;
-      end loop;
+      if m_modulo /= 0 then
+        for x in 1 .. m_modulo loop  -- unroll loop
+          result.mantissa(n_index) := result.mantissa(n_index) + a.mantissa(n_index);
+          result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + a.mantissa(n_index + 1);
+          result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + a.mantissa(n_index + 2);
+          result.mantissa(n_index + 3) := result.mantissa(n_index + 3) + a.mantissa(n_index + 3);
+          n_index := n_index + 4;
+        end loop;
+      end if;
       if remainder /= 0 then
+
         result.mantissa(n_index) := result.mantissa(n_index) + a.mantissa(n_index);
         if remainder = 1 then
           goto continue_line1;
         end if;
+
         result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + a.mantissa(n_index + 1);
         if remainder = 2 then
           goto continue_line1;
         end if;
+
         result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + a.mantissa(n_index + 2);
         <<continue_line1>>
       end if;
@@ -457,23 +459,27 @@ package body Arbitrary is
       m_modulo  :=  result.mantissa'Length / 4;
       remainder :=  result.mantissa'Length mod 4;
       n_index   := result.mantissa'First;
-
-      for x in 1 .. m_modulo loop -- unroll loop
-        result.mantissa(n_index) := result.mantissa(n_index) + b.mantissa(n_index);
-        result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + b.mantissa(n_index + 1);
-        result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + b.mantissa(n_index + 2);
-        result.mantissa(n_index + 3) := result.mantissa(n_index + 3) + b.mantissa(n_index + 3);
-        n_index := n_index + 4;
-      end loop;
+      if m_modulo /= 0 then
+        for x in 1 .. m_modulo loop -- unroll loop
+          result.mantissa(n_index) := result.mantissa(n_index) + b.mantissa(n_index);
+          result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + b.mantissa(n_index + 1);
+          result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + b.mantissa(n_index + 2);
+          result.mantissa(n_index + 3) := result.mantissa(n_index + 3) + b.mantissa(n_index + 3);
+          n_index := n_index + 4;
+        end loop;
+      end if;
       if remainder /= 0 then
+
         result.mantissa(n_index) := result.mantissa(n_index) + b.mantissa(n_index);
         if remainder = 1 then
           goto continue_line2;
         end if;
+
         result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + b.mantissa(n_index + 1);
         if remainder = 2 then
           goto continue_line2;
         end if;
+
         result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + b.mantissa(n_index + 2);
         <<continue_line2>>
       end if;
@@ -486,7 +492,10 @@ package body Arbitrary is
   -- Compute a - b
   -----------------------------------------------------------------------
   function "-"(a, b : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type(a.precision);
+    result      : Arbitrary_Type(a.precision);
+    n_index     : integer := 0;
+    m_modulo    : integer := 0;
+    remainder   : integer := 0;
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
@@ -509,17 +518,73 @@ package body Arbitrary is
     if a.exponent > b.exponent then
       result := b;
       Shift_Right(result, abs (b.exponent - a.exponent));
-      for x in result.mantissa'range loop
-        result.mantissa(x) := a.mantissa(x) - result.mantissa(x);
-      end loop;
+      -- for x in result.mantissa'range loop
+      --   result.mantissa(x) := a.mantissa(x) - result.mantissa(x);
+      -- end loop;
+      m_modulo  :=  result.mantissa'Length / 4;
+      remainder :=  result.mantissa'Length mod 4;
+      n_index   := result.mantissa'First;
+      if m_modulo /= 0 then
+        for x in 1 .. m_modulo loop  -- unroll loop
+          result.mantissa(n_index)     := a.mantissa(n_index) - result.mantissa(n_index);
+          result.mantissa(n_index + 1) := a.mantissa(n_index + 1) - result.mantissa(n_index + 1);
+          result.mantissa(n_index + 2) := a.mantissa(n_index + 2) - result.mantissa(n_index + 2);
+          result.mantissa(n_index + 3) := a.mantissa(n_index + 3) - result.mantissa(n_index + 3);
+          n_index := n_index + 4;
+        end loop;
+      end if;
+      if remainder /= 0 then
+
+        result.mantissa(n_index) := a.mantissa(n_index) - result.mantissa(n_index);
+        if remainder = 1 then
+          goto continue_line1;
+        end if;
+
+        result.mantissa(n_index + 1) := a.mantissa(n_index + 1) -  result.mantissa(n_index + 1);
+        if remainder = 2 then
+          goto continue_line1;
+        end if;
+
+        result.mantissa(n_index + 2) := a.mantissa(n_index + 2) - result.mantissa(n_index + 2);
+        <<continue_line1>>
+      end if;
+
     else
       result := a;
       if a.exponent /= b.exponent then
         Shift_Right(result, abs (b.exponent - a.exponent)); -- <-- need more tests :-)
       end if;
-      for x in result.mantissa'range loop
-        result.mantissa(x) := result.mantissa(x) - b.mantissa(x);
-      end loop;
+      -- for x in result.mantissa'range loop
+      --   result.mantissa(x) := result.mantissa(x) - b.mantissa(x);
+      -- end loop;
+      m_modulo  :=  result.mantissa'Length / 4;
+      remainder :=  result.mantissa'Length mod 4;
+      n_index   := result.mantissa'First;
+      if m_modulo /= 0 then
+        for x in 1 .. m_modulo loop  -- unroll loop
+          result.mantissa(n_index)     := result.mantissa(n_index) - b.mantissa(n_index);
+          result.mantissa(n_index + 1) := result.mantissa(n_index + 1) - b.mantissa(n_index + 1);
+          result.mantissa(n_index + 2) := result.mantissa(n_index + 2) - b.mantissa(n_index + 2);
+          result.mantissa(n_index + 3) := result.mantissa(n_index + 3) - b.mantissa(n_index + 3);
+          n_index := n_index + 4;
+        end loop;
+      end if;
+      if remainder /= 0 then
+
+        result.mantissa(n_index) := result.mantissa(n_index) - b.mantissa(n_index);
+        if remainder = 1 then
+          goto continue_line2;
+        end if;
+
+        result.mantissa(n_index + 1) := result.mantissa(n_index + 1) - b.mantissa(n_index + 1);
+        if remainder = 2 then
+          goto continue_line2;
+        end if;
+
+        result.mantissa(n_index + 2) := result.mantissa(n_index + 2) - b.mantissa(n_index + 2);
+        <<continue_line2>>
+      end if;
+
     end if;
     Normalize(result);
     return result;
