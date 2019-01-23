@@ -55,12 +55,17 @@ package body Arbitrary is
   procedure Shift_Left (a : in out Arbitrary_Type; by : Positive := 1);
 
   procedure Shift_Left (a : in out Arbitrary_Type; by : Positive := 1) is
+    bigger  : constant Boolean := by > a.mantissa'Length;
   begin
-    a.mantissa(a.mantissa'First .. a.mantissa'Last - by)
-      := a.mantissa (a.mantissa'First + by .. a.mantissa'Last);
+    if bigger then
+      a.mantissa.all := (others => 0);
+    else
+      a.mantissa(a.mantissa'First .. a.mantissa'Last - by)
+        := a.mantissa (a.mantissa'First + by .. a.mantissa'Last);
 
-    a.mantissa(a.mantissa'Last - by + 1 .. a.mantissa'Last)
-      := (others => 0);
+      a.mantissa(a.mantissa'Last - by + 1 .. a.mantissa'Last)
+        := (others => 0);
+    end if;
     a.exponent := a.exponent - by;
   end Shift_Left;
 
