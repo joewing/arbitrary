@@ -6,24 +6,24 @@ with Arbitrary; use Arbitrary;
 with Arbitrary.Log; use Arbitrary.Log;
 
 procedure E is
-	precision		: integer;
+  precision    : Integer;
 begin
 
-	if Argument_Count /= 1 then
-		Put_Line("usage: " & Command_Name & " <digits>");
-		return;
-	end if;
+  if Argument_Count /= 1 then
+    Put_Line ("usage: " & Command_Name & " <digits>");
+    return;
+  end if;
 
-	precision := integer'value(Argument(1));
+  precision := Integer'Value (Argument (1));
 
-	declare
-		result		: Arbitrary_Type(precision);
-	begin
+  declare
+    result    : Arbitrary_Type (precision);
+  begin
 
-		result := Exp(To_Arbitrary(1, precision));
+    result := Exp (To_Arbitrary (1, precision));
 
-		Put_line (to_str (result));
+    Put_Line (to_str (result));
 
-	end;
+  end;
 
 end E;

@@ -7,7 +7,7 @@ pragma Detect_Blocking;
 
 package Arbitrary.Const is
 
-	function Pi(precision : integer) return Arbitrary_Type;
-	function Golden_Ratio(precision : integer) return Arbitrary_Type;
+  function Pi (precision : Integer) return Arbitrary_Type;
+  function Golden_Ratio (precision : Integer) return Arbitrary_Type;
 
 end Arbitrary.Const;

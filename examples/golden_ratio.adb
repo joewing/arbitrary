@@ -6,24 +6,24 @@ with Arbitrary; use Arbitrary;
 with Arbitrary.Const; use Arbitrary.Const;
 
 procedure Golden_Ratio is
-	precision		: integer;
+  precision    : Integer;
 begin
 
-	if Argument_Count /= 1 then
-		Put_Line("usage: " & Command_Name & " <digits>");
-		return;
-	end if;
+  if Argument_Count /= 1 then
+    Put_Line ("usage: " & Command_Name & " <digits>");
+    return;
+  end if;
 
-	precision := integer'value(Argument(1));
+  precision := Integer'Value (Argument (1));
 
-	declare
-		result		: Arbitrary_Type(precision);
-	begin
+  declare
+    result    : Arbitrary_Type (precision);
+  begin
 
-		result := Golden_Ratio(precision);
+    result := Golden_Ratio (precision);
 
-		Put_line (to_str (result));
+    Put_Line (to_str (result));
 
-	end;
+  end;
 
 end Golden_Ratio;

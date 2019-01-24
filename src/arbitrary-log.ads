@@ -7,10 +7,10 @@ pragma Detect_Blocking;
 
 package Arbitrary.Log is
 
-	function Exp(a : Arbitrary_Type) return Arbitrary_Type;
+  function Exp (a : Arbitrary_Type) return Arbitrary_Type;
 
-	function Ln2(precision : integer) return Arbitrary_Type;
+  function Ln2 (precision : Integer) return Arbitrary_Type;
 
-	function Ln(a : Arbitrary_Type) return Arbitrary_Type;
+  function Ln (a : Arbitrary_Type) return Arbitrary_Type;
 
 end Arbitrary.Log;

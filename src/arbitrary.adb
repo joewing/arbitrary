@@ -10,42 +10,40 @@ pragma Detect_Blocking;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
-
-
 package body Arbitrary is
 
-  procedure Delete is new Ada.Unchecked_Deallocation(Mantissa_Type,
+  procedure Delete is new Ada.Unchecked_Deallocation (Mantissa_Type,
     Mantissa_Pointer);
 
   -----------------------------------------------------------------------
   -- Initialize an Arbitrary_Type
   -----------------------------------------------------------------------
-  procedure Initialize (object : in out Arbitrary_Type) is
+  procedure Initialize (Object : in out Arbitrary_Type) is
   begin
-    object.mantissa := new Mantissa_Type (1..object.precision);
-    object.exponent := 0;
-    object.sign := 1;
+    Object.mantissa     := new Mantissa_Type (1 .. Object.precision);
+    Object.exponent     := 0;
+    Object.sign         := 1;
     -- "here" for diminish race condition from OS' s
-    object.mantissa.all := (others => 0);
+    Object.mantissa.all := (others => 0);
   end Initialize;
 
   -----------------------------------------------------------------------
   -- Fix an Arbitrary_Type after being assigned a value
   -----------------------------------------------------------------------
-  procedure Adjust(object : in out Arbitrary_Type) is
+  procedure Adjust (Object : in out Arbitrary_Type) is
   begin
-    object.mantissa := new Mantissa_Type'(object.mantissa.all);
+    Object.mantissa := new Mantissa_Type'(Object.mantissa.all);
   end Adjust;
 
   -----------------------------------------------------------------------
   -- Release an Arbitrary_Type;
   -----------------------------------------------------------------------
-  procedure Finalize(object : in out Arbitrary_Type) is
+  procedure Finalize (Object : in out Arbitrary_Type) is
   begin
-    if object.mantissa /= null then
-      Delete(object.mantissa);
+    if Object.mantissa /= null then
+      Delete (Object.mantissa);
     end if;
-    object.mantissa := null;
+    Object.mantissa := null;
   end Finalize;
 
   -----------------------------------------------------------------------
@@ -59,10 +57,10 @@ package body Arbitrary is
     if bigger then
       a.mantissa.all := (others => 0);
     else
-      a.mantissa(a.mantissa'First .. a.mantissa'Last - by)
+      a.mantissa (a.mantissa'First .. a.mantissa'Last - by)
         := a.mantissa (a.mantissa'First + by .. a.mantissa'Last);
 
-      a.mantissa(a.mantissa'Last - by + 1 .. a.mantissa'Last)
+      a.mantissa (a.mantissa'Last - by + 1 .. a.mantissa'Last)
         := (others => 0);
     end if;
     a.exponent := a.exponent - by;
@@ -85,69 +83,70 @@ package body Arbitrary is
       a.mantissa (a.mantissa'First .. (a.mantissa'First + by) - 1)
         := (others => 0);
     end if;
-
     a.exponent := a.exponent + by;
   end Shift_Right;
 
   -----------------------------------------------------------------------
   -- Fix overflows, underflows, and sign changes
   -----------------------------------------------------------------------
-  procedure Normalize(a : in out Arbitrary_Type) is
-    changed    : boolean := true;
-    temp       : integer := a.mantissa'first;
-    carry      : integer := 0;
-    z          : integer := 0;
+  procedure Normalize (a : in out Arbitrary_Type);
+
+  procedure Normalize (a : in out Arbitrary_Type) is
+    changed    : Boolean := True;
+    temp       : Integer := a.mantissa'First;
+    carry      : Integer := 0;
+    z          : Integer := 0;
     left_carry : Natural := 0;
   begin
     -- Zero is a special case
-    while temp <= a.mantissa'last loop
-      exit when a.mantissa(temp) /= 0;
+    while temp <= a.mantissa'Last loop
+      exit when a.mantissa (temp) /= 0;
       temp := temp + 1;
     end loop;
-    if temp > a.mantissa'last then
+    if temp > a.mantissa'Last then
       a.sign := 1;
       a.exponent := 0;
       return;
     end if;
 
     while changed loop
-      changed := false;
-      for x in a.mantissa'first + 1 .. a.mantissa'last loop
-        if a.mantissa(x) >= base then -- ? :-) ?
-          temp := a.mantissa(x);
-          a.mantissa(x) := temp mod base; -- ? a factorial type ? :-)
-          a.mantissa(x - 1) := a.mantissa(x - 1) + temp / base;
-          changed := true;
+      changed := False;
+      for x in a.mantissa'First + 1 .. a.mantissa'Last loop
+        if a.mantissa (x) >= base then -- ? :-) ?
+          temp                := a.mantissa (x);
+          a.mantissa (x)      := temp mod base; -- ? a factorial type ? :-)
+          a.mantissa (x - 1)  := a.mantissa (x - 1) + (temp / base);
+          changed             := True;
         end if;
-        if a.mantissa(x) < 0 then
-          z := integer (Float'Ceiling ( Float (-a.mantissa(x)) / fbase));
-          a.mantissa(x) := a.mantissa(x) + (z * base);
-          a.mantissa(x - 1) := a.mantissa(x - 1) - z;
-          changed := true;
+        if a.mantissa (x) < 0 then
+          z := Integer (Float'Ceiling (Float (-a.mantissa (x)) / fbase));
+          a.mantissa (x)      := a.mantissa (x) + (z * base);
+          a.mantissa (x - 1)  := a.mantissa (x - 1) - z;
+          changed             := True;
         end if;
       end loop;
-      if a.mantissa(a.mantissa'first) >= base then
-        carry := a.mantissa(a.mantissa'first) / base;
-        temp := a.mantissa(a.mantissa'first) mod base;
-        a.mantissa(a.mantissa'first) := temp;
-        Shift_Right(a);
-        a.mantissa(a.mantissa'first) := carry;
-        changed := true;
+      if a.mantissa (a.mantissa'First) >= base then
+        carry := a.mantissa (a.mantissa'First) / base;
+        temp := a.mantissa (a.mantissa'First) mod base;
+        a.mantissa (a.mantissa'First) := temp;
+        Shift_Right (a);
+        a.mantissa (a.mantissa'First) := carry;
+        changed := True;
       end if;
-      if a.mantissa(a.mantissa'first) < 0 then
-        for x in a.mantissa'range loop
-          a.mantissa(x) := -a.mantissa(x);
+      if a.mantissa (a.mantissa'First) < 0 then
+        for x in a.mantissa'Range loop
+          a.mantissa (x) := -a.mantissa (x);
         end loop;
         a.sign := -a.sign;
-        changed := true;
+        changed := True;
       end if;
-      if a.mantissa(a.mantissa'first) = 0 then
-        changed := true;
-        for x in a.mantissa'range loop
-          exit when a.mantissa(x) /= 0;
+      if a.mantissa (a.mantissa'First) = 0 then
+        changed := True;
+        for x in a.mantissa'Range loop
+          exit when a.mantissa (x) /= 0;
           left_carry  := left_carry + 1;
         end loop;
-        Shift_Left(a, left_carry);
+        Shift_Left (a, left_carry);
         left_carry := 0;
       end if;
     end loop;
@@ -157,45 +156,45 @@ package body Arbitrary is
   -- Set an Arbitrary_Type to zero
   -- (This is done in the Initializer)
   -----------------------------------------------------------------------
-  procedure Clear(a : out Arbitrary_Type) is
+  procedure Clear (a : out Arbitrary_Type) is
   begin
-    a.mantissa.all := (others => 0);
-    a.exponent := 0;
-    a.sign := 1;
+    a.mantissa.all  := (others => 0);
+    a.exponent      := 0;
+    a.sign          := 1;
   end Clear;
 
   -----------------------------------------------------------------------
-  -- Convert an integer type to an Arbitrary_Type
+  -- Convert an Integer type to an Arbitrary_Type
   -----------------------------------------------------------------------
-  function To_Arbitrary(value : integer; precision : integer)
+  function To_Arbitrary (value : Integer; precision : Integer)
     return Arbitrary_Type is
-    result    : Arbitrary_Type(precision);
+    result    : Arbitrary_Type (precision);
   begin
-    result.mantissa(result.exponent + 1) := value;
-    Normalize(result);
+    result.mantissa (result.exponent + 1) := value;
+    Normalize (result);
     return result;
   end To_Arbitrary;
 
   -----------------------------------------------------------------------
   -- Test for equality
   -----------------------------------------------------------------------
-  function "="(a, b : Arbitrary_Type) return boolean is
+  function "="(a, b : Arbitrary_Type) return Boolean is
   begin
     if          a.precision = b.precision
       and then  a.exponent = b.exponent
       and then  a.sign = b.sign
       and then  a.mantissa.all = b.mantissa.all
     then
-      return true;
+      return True;
     end if;
 
-    return false;
+    return False;
   end "=";
 
   -----------------------------------------------------------------------
   -- Test greater than
   -----------------------------------------------------------------------
-  function ">"(a, b : Arbitrary_Type) return boolean is
+  function ">"(a, b : Arbitrary_Type) return Boolean is
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
@@ -203,48 +202,48 @@ package body Arbitrary is
       end if;
     end if;
     if    a.sign < 0 and then b.sign > 0 then
-      return false;
+      return False;
     elsif a.sign > 0 and then b.sign < 0 then
-      return true;
+      return True;
     elsif a.exponent > b.exponent then
       if a.sign < 0 then
-        return false;
+        return False;
       end if;
-      return true;
+      return True;
     elsif a.exponent < b.exponent then
       if a.sign < 0 then
-        return true;
+        return True;
       end if;
-      return false;
+      return False;
     else
       if a.sign < 0 then
-        for x in a.mantissa'range loop
-          if a.mantissa(x) = 0 then
+        for x in a.mantissa'Range loop
+          if a.mantissa (x) = 0 then
             goto continue_loop1;
           end if;
-          return (if a.mantissa(x) < b.mantissa(x) then true else false);
+          return (if a.mantissa (x) < b.mantissa (x) then True else False);
 
           <<continue_loop1>>
         end loop;
-        return false;
+        return False;
       end if;
 
-      for x in a.mantissa'range loop
-        if a.mantissa(x) = 0 then
+      for x in a.mantissa'Range loop
+        if a.mantissa (x) = 0 then
           goto continue_loop2;
         end if;
-        return (if a.mantissa(x) > b.mantissa(x) then true else false);
+        return (if a.mantissa (x) > b.mantissa (x) then True else False);
 
         <<continue_loop2>>
       end loop;
-      return false;
+      return False;
     end if;
   end ">";
 
   -----------------------------------------------------------------------
   -- Test greater or equal
   -----------------------------------------------------------------------
-  function ">="(a, b : Arbitrary_Type) return boolean is
+  function ">="(a, b : Arbitrary_Type) return Boolean is
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
@@ -257,55 +256,55 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   -- Test if less than
   -----------------------------------------------------------------------
-  function "<"(a, b : Arbitrary_Type) return boolean is
+  function "<"(a, b : Arbitrary_Type) return Boolean is
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
         raise Constraint_Error;
       end if;
     end if;
-    if a.sign < 0 and b.sign > 0 then
-      return true;
-    elsif a.sign > 0 and b.sign < 0 then
-      return false;
+    if    a.sign < 0 and then b.sign > 0 then
+      return True;
+    elsif a.sign > 0 and then b.sign < 0 then
+      return False;
     elsif a.exponent < b.exponent then
       if a.sign < 0 then
-        return false;
+        return False;
       end if;
-      return true;
+      return True;
     elsif a.exponent > b.exponent then
       if a.sign < 0 then
-        return true;
+        return True;
       end if;
-      return false;
+      return False;
     else
       if a.sign < 0 then
-        for x in a.mantissa'range loop
-          if a.mantissa(x) = 0 then
+        for x in a.mantissa'Range loop
+          if a.mantissa (x) = 0 then
             goto continue_loop1;
           end if;
-          return (if a.mantissa(x) > b.mantissa(x) then true else false);
+          return (if a.mantissa (x) > b.mantissa (x) then True else False);
 
           <<continue_loop1>>
         end loop;
-      else
-        for x in a.mantissa'range loop
-          if a.mantissa(x) = 0 then
-            goto continue_loop2;
-          end if;
-          return (if a.mantissa(x) < b.mantissa(x) then true else false);
-
-          <<continue_loop2>>
-        end loop;
+        return False;
       end if;
-      return false;
+      for x in a.mantissa'Range loop
+        if a.mantissa (x) = 0 then
+          goto continue_loop2;
+        end if;
+        return (if a.mantissa (x) < b.mantissa (x) then True else False);
+
+        <<continue_loop2>>
+      end loop;
+      return False;
     end if;
   end "<";
 
   -----------------------------------------------------------------------
   -- Test if less than or equal to
   -----------------------------------------------------------------------
-  function "<="(a, b : Arbitrary_Type) return boolean is
+  function "<="(a, b : Arbitrary_Type) return Boolean is
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
@@ -318,16 +317,16 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   -- Compute n! to precision digits
   -----------------------------------------------------------------------
-  function Factorial(n : integer; precision : integer)
+  function Factorial (n : Integer; precision : Integer)
     return Arbitrary_Type is
-    result    : Arbitrary_Type := To_Arbitrary(1, precision);
+    result    : Arbitrary_Type := To_Arbitrary (1, precision);
   begin
     if n < 0 then
       raise Constraint_Error;
     end if;
 
     for x in 2 .. n loop
-      result := result * To_Arbitrary(x, precision);
+      result := result * To_Arbitrary (x, precision);
     end loop;
     return result;
   end Factorial;
@@ -335,15 +334,15 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   -- Compute 1/n!
   -----------------------------------------------------------------------
-  function One_Over_Factorial(n : integer; precision : integer)
+  function One_Over_Factorial (n : Integer; precision : Integer)
     return Arbitrary_Type is
-    result    : Arbitrary_Type := To_Arbitrary(1, precision);
+    result    : Arbitrary_Type := To_Arbitrary (1, precision);
   begin
     if n < 0 then
       raise Constraint_Error;
     end if;
     for x in 2 .. n loop
-      result := result / To_Arbitrary(x, precision); -- ? unrollLoop ?
+      result := result / To_Arbitrary (x, precision); -- ? unrollLoop ?
     end loop;
     return result;
   end One_Over_Factorial;
@@ -351,11 +350,11 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   -- Compute the square root of n to precision digits
   -----------------------------------------------------------------------
-  function Square_Root(a : Arbitrary_Type) return Arbitrary_Type is
-    result  : Arbitrary_Type(a.precision) := To_Arbitrary(1, a.precision);
-    last1   : Arbitrary_Type(a.precision);
-    two     : constant Arbitrary_Type(a.precision) :=
-              To_Arbitrary(2, a.precision);
+  function Square_Root (a : Arbitrary_Type) return Arbitrary_Type is
+    result  : Arbitrary_Type (a.precision) := To_Arbitrary (1, a.precision);
+    last1   : Arbitrary_Type (a.precision);
+    two     : constant Arbitrary_Type (a.precision) :=
+              To_Arbitrary (2, a.precision);
   begin
     -- x(i) = (x(i-1) + n / x(i-1)) / 2
     loop
@@ -379,7 +378,7 @@ package body Arbitrary is
   -- Negate a
   -----------------------------------------------------------------------
   function "-"(a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type(a.precision) := a;
+    result    : Arbitrary_Type (a.precision) := a;
   begin
     result.sign := -result.sign;
     return result;
@@ -389,10 +388,10 @@ package body Arbitrary is
   -- Compute a + b
   -----------------------------------------------------------------------
   function "+"(a, b : Arbitrary_Type) return Arbitrary_Type is
-    result      : Arbitrary_Type(a.precision);
-    n_index     : integer := 0;
-    m_modulo    : integer := 0;
-    remainder   : integer := 0;
+    result      : Arbitrary_Type (a.precision);
+    n_index     : Integer := 0;
+    m_modulo    : Integer := 0;
+    remainder   : Integer := 0;
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
@@ -418,33 +417,40 @@ package body Arbitrary is
     -- Set result to the additive with the least exponent and shift
     if a.exponent > b.exponent then
       result := b;
-      Shift_Right(result, abs (b.exponent - a.exponent));
+      Shift_Right (result, abs (b.exponent - a.exponent));
 
       m_modulo  :=  result.mantissa'Length / 4;
       remainder :=  result.mantissa'Length mod 4;
       n_index   := result.mantissa'First;
       if m_modulo /= 0 then
         for x in 1 .. m_modulo loop  -- unroll loop
-          result.mantissa(n_index) := result.mantissa(n_index) + a.mantissa(n_index);
-          result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + a.mantissa(n_index + 1);
-          result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + a.mantissa(n_index + 2);
-          result.mantissa(n_index + 3) := result.mantissa(n_index + 3) + a.mantissa(n_index + 3);
+          result.mantissa (n_index) := result.mantissa (n_index) +
+            a.mantissa (n_index);
+          result.mantissa (n_index + 1) := result.mantissa (n_index + 1) +
+            a.mantissa (n_index + 1);
+          result.mantissa (n_index + 2) := result.mantissa (n_index + 2) +
+            a.mantissa (n_index + 2);
+          result.mantissa (n_index + 3) := result.mantissa (n_index + 3) +
+            a.mantissa (n_index + 3);
           n_index := n_index + 4;
         end loop;
       end if;
       if remainder /= 0 then
 
-        result.mantissa(n_index) := result.mantissa(n_index) + a.mantissa(n_index);
+        result.mantissa (n_index) := result.mantissa (n_index) +
+          a.mantissa (n_index);
         if remainder = 1 then
           goto continue_line1;
         end if;
 
-        result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + a.mantissa(n_index + 1);
+        result.mantissa (n_index + 1) := result.mantissa (n_index + 1) +
+          a.mantissa (n_index + 1);
         if remainder = 2 then
           goto continue_line1;
         end if;
 
-        result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + a.mantissa(n_index + 2);
+        result.mantissa (n_index + 2) := result.mantissa (n_index + 2) +
+          a.mantissa (n_index + 2);
         <<continue_line1>>
       end if;
 
@@ -452,7 +458,8 @@ package body Arbitrary is
       result := a;
 
       if a.exponent /= b.exponent then
-        Shift_Right(result, abs (b.exponent - a.exponent)); -- <-- need more tests :-)
+        Shift_Right (result, abs (b.exponent - a.exponent));
+                              -- ^ -- need more tests :-)
       end if;
 
       m_modulo  :=  result.mantissa'Length / 4;
@@ -460,30 +467,37 @@ package body Arbitrary is
       n_index   := result.mantissa'First;
       if m_modulo /= 0 then
         for x in 1 .. m_modulo loop -- unroll loop
-          result.mantissa(n_index) := result.mantissa(n_index) + b.mantissa(n_index);
-          result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + b.mantissa(n_index + 1);
-          result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + b.mantissa(n_index + 2);
-          result.mantissa(n_index + 3) := result.mantissa(n_index + 3) + b.mantissa(n_index + 3);
+          result.mantissa (n_index) := result.mantissa (n_index) +
+            b.mantissa (n_index);
+          result.mantissa (n_index + 1) := result.mantissa (n_index + 1) +
+            b.mantissa (n_index + 1);
+          result.mantissa (n_index + 2) := result.mantissa (n_index + 2) +
+            b.mantissa (n_index + 2);
+          result.mantissa (n_index + 3) := result.mantissa (n_index + 3) +
+            b.mantissa (n_index + 3);
           n_index := n_index + 4;
         end loop;
       end if;
       if remainder /= 0 then
 
-        result.mantissa(n_index) := result.mantissa(n_index) + b.mantissa(n_index);
+        result.mantissa (n_index) := result.mantissa (n_index) +
+          b.mantissa (n_index);
         if remainder = 1 then
           goto continue_line2;
         end if;
 
-        result.mantissa(n_index + 1) := result.mantissa(n_index + 1) + b.mantissa(n_index + 1);
+        result.mantissa (n_index + 1) := result.mantissa (n_index + 1) +
+          b.mantissa (n_index + 1);
         if remainder = 2 then
           goto continue_line2;
         end if;
 
-        result.mantissa(n_index + 2) := result.mantissa(n_index + 2) + b.mantissa(n_index + 2);
+        result.mantissa (n_index + 2) := result.mantissa (n_index + 2) +
+          b.mantissa (n_index + 2);
         <<continue_line2>>
       end if;
     end if;
-    Normalize(result);
+    Normalize (result);
     return result;
   end "+";
 
@@ -491,10 +505,10 @@ package body Arbitrary is
   -- Compute a - b
   -----------------------------------------------------------------------
   function "-"(a, b : Arbitrary_Type) return Arbitrary_Type is
-    result      : Arbitrary_Type(a.precision);
-    n_index     : integer := 0;
-    m_modulo    : integer := 0;
-    remainder   : integer := 0;
+    result      : Arbitrary_Type (a.precision);
+    n_index     : Integer := 0;
+    m_modulo    : Integer := 0;
+    remainder   : Integer := 0;
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
@@ -516,76 +530,91 @@ package body Arbitrary is
 
     if a.exponent > b.exponent then
       result := b;
-      Shift_Right(result, abs (b.exponent - a.exponent));
+      Shift_Right (result, abs (b.exponent - a.exponent));
       -- for x in result.mantissa'range loop
-      --   result.mantissa(x) := a.mantissa(x) - result.mantissa(x);
+      --   result.mantissa (x) := a.mantissa (x) - result.mantissa (x);
       -- end loop;
       m_modulo  :=  result.mantissa'Length / 4;
       remainder :=  result.mantissa'Length mod 4;
       n_index   := result.mantissa'First;
       if m_modulo /= 0 then
         for x in 1 .. m_modulo loop  -- unroll loop
-          result.mantissa(n_index)     := a.mantissa(n_index) - result.mantissa(n_index);
-          result.mantissa(n_index + 1) := a.mantissa(n_index + 1) - result.mantissa(n_index + 1);
-          result.mantissa(n_index + 2) := a.mantissa(n_index + 2) - result.mantissa(n_index + 2);
-          result.mantissa(n_index + 3) := a.mantissa(n_index + 3) - result.mantissa(n_index + 3);
+          result.mantissa (n_index)     := a.mantissa (n_index) -
+            result.mantissa (n_index);
+          result.mantissa (n_index + 1) := a.mantissa (n_index + 1) -
+            result.mantissa (n_index + 1);
+          result.mantissa (n_index + 2) := a.mantissa (n_index + 2) -
+            result.mantissa (n_index + 2);
+          result.mantissa (n_index + 3) := a.mantissa (n_index + 3) -
+            result.mantissa (n_index + 3);
           n_index := n_index + 4;
         end loop;
       end if;
       if remainder /= 0 then
 
-        result.mantissa(n_index) := a.mantissa(n_index) - result.mantissa(n_index);
+        result.mantissa (n_index) := a.mantissa (n_index) -
+          result.mantissa (n_index);
         if remainder = 1 then
           goto continue_line1;
         end if;
 
-        result.mantissa(n_index + 1) := a.mantissa(n_index + 1) -  result.mantissa(n_index + 1);
+        result.mantissa (n_index + 1) := a.mantissa (n_index + 1) -
+          result.mantissa (n_index + 1);
         if remainder = 2 then
           goto continue_line1;
         end if;
 
-        result.mantissa(n_index + 2) := a.mantissa(n_index + 2) - result.mantissa(n_index + 2);
+        result.mantissa (n_index + 2) := a.mantissa (n_index + 2) -
+          result.mantissa (n_index + 2);
         <<continue_line1>>
       end if;
 
     else
       result := a;
       if a.exponent /= b.exponent then
-        Shift_Right(result, abs (b.exponent - a.exponent)); -- <-- need more tests :-)
+        Shift_Right (result, abs (b.exponent - a.exponent));
+                              -- ^-- need more tests :-)
       end if;
       -- for x in result.mantissa'range loop
-      --   result.mantissa(x) := result.mantissa(x) - b.mantissa(x);
+      --   result.mantissa (x) := result.mantissa (x) - b.mantissa (x);
       -- end loop;
       m_modulo  :=  result.mantissa'Length / 4;
       remainder :=  result.mantissa'Length mod 4;
       n_index   := result.mantissa'First;
       if m_modulo /= 0 then
         for x in 1 .. m_modulo loop  -- unroll loop
-          result.mantissa(n_index)     := result.mantissa(n_index) - b.mantissa(n_index);
-          result.mantissa(n_index + 1) := result.mantissa(n_index + 1) - b.mantissa(n_index + 1);
-          result.mantissa(n_index + 2) := result.mantissa(n_index + 2) - b.mantissa(n_index + 2);
-          result.mantissa(n_index + 3) := result.mantissa(n_index + 3) - b.mantissa(n_index + 3);
+          result.mantissa (n_index)     := result.mantissa (n_index) -
+            b.mantissa (n_index);
+          result.mantissa (n_index + 1) := result.mantissa (n_index + 1) -
+            b.mantissa (n_index + 1);
+          result.mantissa (n_index + 2) := result.mantissa (n_index + 2) -
+            b.mantissa (n_index + 2);
+          result.mantissa (n_index + 3) := result.mantissa (n_index + 3) -
+            b.mantissa (n_index + 3);
           n_index := n_index + 4;
         end loop;
       end if;
       if remainder /= 0 then
 
-        result.mantissa(n_index) := result.mantissa(n_index) - b.mantissa(n_index);
+        result.mantissa (n_index) := result.mantissa (n_index) -
+          b.mantissa (n_index);
         if remainder = 1 then
           goto continue_line2;
         end if;
 
-        result.mantissa(n_index + 1) := result.mantissa(n_index + 1) - b.mantissa(n_index + 1);
+        result.mantissa (n_index + 1) := result.mantissa (n_index + 1) -
+          b.mantissa (n_index + 1);
         if remainder = 2 then
           goto continue_line2;
         end if;
 
-        result.mantissa(n_index + 2) := result.mantissa(n_index + 2) - b.mantissa(n_index + 2);
+        result.mantissa (n_index + 2) := result.mantissa (n_index + 2) -
+          b.mantissa (n_index + 2);
         <<continue_line2>>
       end if;
 
     end if;
-    Normalize(result);
+    Normalize (result);
     return result;
   end "-";
 
@@ -593,9 +622,9 @@ package body Arbitrary is
   -- Compute a * b
   -----------------------------------------------------------------------
   function "*"(a, b : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type(
-      integer'max(a.precision, b.precision));
-    offset    : integer;  -- offset in result;
+    result    : Arbitrary_Type (
+      Integer'Max (a.precision, b.precision));
+    offset    : Integer;  -- offset in result;
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
@@ -603,16 +632,16 @@ package body Arbitrary is
       end if;
     end if;
     offset := 0;
-    for x in b.mantissa'range loop
-      for y in a.mantissa'first .. a.mantissa'last - offset loop
-        result.mantissa(offset + y) :=
-          result.mantissa(offset + y) + a.mantissa(y) * b.mantissa(x);
+    for x in b.mantissa'Range loop
+      for y in a.mantissa'First .. a.mantissa'Last - offset loop
+        result.mantissa (offset + y) :=
+          result.mantissa (offset + y) + a.mantissa (y) * b.mantissa (x);
       end loop;
       offset := offset + 1;
     end loop;
     result.sign := a.sign * b.sign;
     result.exponent := a.exponent + b.exponent;
-    Normalize(result);
+    Normalize (result);
     return result;
   end "*";
 
@@ -620,21 +649,21 @@ package body Arbitrary is
   -- Compute a / b
   -----------------------------------------------------------------------
   function "/"(a, b : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type(a.precision);
-    denominator  : Arbitrary_Type(a.precision);
-    numerator  : Arbitrary_Type(a.precision);
-    temp      : integer;
+    result        : Arbitrary_Type (a.precision);
+    denominator   : Arbitrary_Type (a.precision);
+    numerator     : Arbitrary_Type (a.precision);
+    temp          : Integer;
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
         raise Constraint_Error;
       end if;
-      if b = To_Arbitrary(0, b.precision) then
+      if b = To_Arbitrary (0, b.precision) then
         raise Constraint_Error;
       end if;
     end if;
-    if a = To_Arbitrary(0, a.precision) then
-      return To_Arbitrary(0, a.precision);
+    if a = To_Arbitrary (0, a.precision) then
+      return To_Arbitrary (0, a.precision);
     end if;
     numerator := a;
     numerator.sign := 1;
@@ -648,23 +677,23 @@ package body Arbitrary is
 
     -- Now adjust the denominator's exponent such that we start getting
     -- digits for the result immediately
-    -- The first digits will arise when the numerator and denominator
+    -- The First digits will arise when the numerator and denominator
     -- have the same exponent. Since the result's exponent has already
     -- been calcuated, we simply adjust the denominator
     denominator.exponent := numerator.exponent;
 
-    Magnitude: for x in result.mantissa'range loop
-      Digit_Count: while numerator >= denominator loop
+    Magnitude : for x in result.mantissa'Range loop
+      Digit_Count : while numerator >= denominator loop
         -- Note that numerator must always be normalized
         exit Magnitude when
-          numerator.mantissa(numerator.mantissa'first) = 0;
-        result.mantissa(x) := result.mantissa(x) + 1;
+          numerator.mantissa (numerator.mantissa'First) = 0;
+        result.mantissa (x) := result.mantissa (x) + 1;
         numerator := numerator - denominator;
       end loop Digit_Count;
       denominator.exponent := denominator.exponent - 1;
     end loop Magnitude;
     result.sign := a.sign * b.sign;
-    Normalize(result);
+    Normalize (result);
     return result;
   end "/";
 

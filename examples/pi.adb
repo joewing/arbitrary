@@ -10,25 +10,25 @@ with Arbitrary; use Arbitrary;
 with Arbitrary.Const; use Arbitrary.Const;
 
 procedure Pi is
-	precision	: integer;
+  precision  : Integer;
 begin
 
-	if Argument_Count /= 1 then
-		Put_Line("usage: " & Command_Name & " <digits>");
-		return;
-	end if;
+  if Argument_Count /= 1 then
+    Put_Line ("usage: " & Command_Name & " <digits>");
+    return;
+  end if;
 
-	precision := integer'value(Argument(1));
+  precision := Integer'Value (Argument (1));
 
-	declare
+  declare
 
-		result		: Arbitrary_Type(precision);
+    result    : Arbitrary_Type (precision);
 
-	begin
+  begin
 
-		result := Pi(precision);
-		Put_line (to_str (result));
+    result := Pi (precision);
+    Put_Line (to_str (result));
 
-	end;
+  end;
 
 end Pi;
