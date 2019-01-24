@@ -7,7 +7,9 @@ pragma Detect_Blocking;
 
 with Ada.Finalization;
 
-package Arbitrary is
+package Arbitrary
+  with preelaborate
+is
 
   -- Set to false for increased speed
   DEBUG_CHECKS  : Boolean  := False;
@@ -15,33 +17,41 @@ package Arbitrary is
   type Arbitrary_Type (size : Positive) is
     new Ada.Finalization.Controlled with private;
 
-  function to_str (a : Arbitrary_Type)  return String;
+  function to_str (a : Arbitrary_Type)  return String
+    with pure_function;
   procedure Clear (a : out Arbitrary_Type);
 
   function To_Arbitrary (value : Integer; precision : Integer)
-    return Arbitrary_Type;
+  return Arbitrary_Type
+    with inline; --, pure_function ?
 
-  function Factorial (n : Integer; precision : Integer)
-    return Arbitrary_Type;
+  function Factorial (n : Integer; precision : Integer) return Arbitrary_Type
+    with inline;
 
   function One_Over_Factorial (n : Integer; precision : Integer)
-    return Arbitrary_Type;
+    return Arbitrary_Type
+      with inline;
 
   function Square_Root (a : Arbitrary_Type) return Arbitrary_Type;
 
-  function "="(a, b : Arbitrary_Type) return Boolean;
+  function "="(a, b : Arbitrary_Type) return Boolean
+    with inline;
   function ">"(a, b : Arbitrary_Type) return Boolean;
   function ">="(a, b : Arbitrary_Type) return Boolean;
   function "<"(a, b : Arbitrary_Type) return Boolean;
   function "<="(a, b : Arbitrary_Type) return Boolean;
 
-  function "+"(a : Arbitrary_Type) return Arbitrary_Type;
-  function "-"(a : Arbitrary_Type) return Arbitrary_Type;
+  function "+"(a : Arbitrary_Type) return Arbitrary_Type
+    with inline;
+  function "-"(a : Arbitrary_Type) return Arbitrary_Type
+    with inline;
 
   function "+"(a, b : Arbitrary_Type) return Arbitrary_Type;
   function "-"(a, b : Arbitrary_Type) return Arbitrary_Type;
-  function "*"(a, b : Arbitrary_Type) return Arbitrary_Type;
-  function "/"(a, b : Arbitrary_Type) return Arbitrary_Type;
+  function "*"(a, b : Arbitrary_Type) return Arbitrary_Type
+    with inline;
+  function "/"(a, b : Arbitrary_Type) return Arbitrary_Type
+    with inline;
 
 private
 

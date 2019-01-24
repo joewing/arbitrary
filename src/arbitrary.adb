@@ -7,7 +7,7 @@
 pragma Ada_2012;
 pragma Detect_Blocking;
 
-with Ada.Text_IO; use Ada.Text_IO;
+-- with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
 package body Arbitrary is
@@ -47,9 +47,10 @@ package body Arbitrary is
   end Finalize;
 
   -----------------------------------------------------------------------
-  -- Shift mantissa left one digit and preserve the value
+  -- Shift mantissa left 'by' digits and preserve the value
   -----------------------------------------------------------------------
-  procedure Shift_Left (a : in out Arbitrary_Type; by : Positive := 1);
+  procedure Shift_Left (a : in out Arbitrary_Type; by : Positive := 1)
+    with inline;
 
   procedure Shift_Left (a : in out Arbitrary_Type; by : Positive := 1) is
     bigger  : constant Boolean := by > a.mantissa'Length;
@@ -67,9 +68,10 @@ package body Arbitrary is
   end Shift_Left;
 
   -----------------------------------------------------------------------
-  -- Shift the mantissa right one digit and preserve the value
+  -- Shift the mantissa right 'by' digit and preserve the value
   -----------------------------------------------------------------------
-  procedure Shift_Right (a : in out Arbitrary_Type; by : Positive := 1);
+  procedure Shift_Right (a : in out Arbitrary_Type; by : Positive := 1)
+    with inline;
 
   procedure Shift_Right (a : in out Arbitrary_Type; by : Positive := 1) is
     bigger  : constant Boolean := by > a.mantissa'Length;
@@ -92,7 +94,7 @@ package body Arbitrary is
   procedure Normalize (a : in out Arbitrary_Type);
 
   procedure Normalize (a : in out Arbitrary_Type) is
-    changed    : Boolean := True;
+    changed    : Boolean := False;
     temp       : Integer := a.mantissa'First;
     carry      : Integer := 0;
     z          : Integer := 0;
@@ -109,8 +111,7 @@ package body Arbitrary is
       return;
     end if;
 
-    while changed loop
-      changed := False;
+    loop
       for x in a.mantissa'First + 1 .. a.mantissa'Last loop
         if a.mantissa (x) >= base then -- ? :-) ?
           temp                := a.mantissa (x);
@@ -134,7 +135,7 @@ package body Arbitrary is
         changed := True;
       end if;
       if a.mantissa (a.mantissa'First) < 0 then
-        for x in a.mantissa'Range loop
+        for x in a.mantissa'Range loop -- ? add a unroll loop ? :-)
           a.mantissa (x) := -a.mantissa (x);
         end loop;
         a.sign := -a.sign;
@@ -149,6 +150,8 @@ package body Arbitrary is
         Shift_Left (a, left_carry);
         left_carry := 0;
       end if;
+      exit when not changed;
+      changed := False;
     end loop;
   end Normalize;
 
@@ -351,10 +354,9 @@ package body Arbitrary is
   -- Compute the square root of n to precision digits
   -----------------------------------------------------------------------
   function Square_Root (a : Arbitrary_Type) return Arbitrary_Type is
-    result  : Arbitrary_Type (a.precision) := To_Arbitrary (1, a.precision);
+    result  : Arbitrary_Type          :=  To_Arbitrary (1, a.precision);
+    two     : constant Arbitrary_Type :=  To_Arbitrary (2, a.precision);
     last1   : Arbitrary_Type (a.precision);
-    two     : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (2, a.precision);
   begin
     -- x(i) = (x(i-1) + n / x(i-1)) / 2
     loop
@@ -369,16 +371,13 @@ package body Arbitrary is
   -----------------------------------------------------------------------
   -- Unary + operator -- do nothing
   -----------------------------------------------------------------------
-  function "+"(a : Arbitrary_Type) return Arbitrary_Type is
-  begin
-    return a;
-  end "+";
+  function "+"(a : Arbitrary_Type) return Arbitrary_Type is (a);
 
   -----------------------------------------------------------------------
   -- Negate a
   -----------------------------------------------------------------------
   function "-"(a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision) := a;
+    result    : Arbitrary_Type := a;
   begin
     result.sign := -result.sign;
     return result;
@@ -459,7 +458,10 @@ package body Arbitrary is
 
       if a.exponent /= b.exponent then
         Shift_Right (result, abs (b.exponent - a.exponent));
-                              -- ^ -- need more tests :-)
+        -- Need more tests     --^--
+        -- This value "abs (b.exponent - a.exponent)" worked. But don't hurt
+        -- more extensively tests from users :-D
+        -- Enjoy!!! :-D
       end if;
 
       m_modulo  :=  result.mantissa'Length / 4;
@@ -531,9 +533,6 @@ package body Arbitrary is
     if a.exponent > b.exponent then
       result := b;
       Shift_Right (result, abs (b.exponent - a.exponent));
-      -- for x in result.mantissa'range loop
-      --   result.mantissa (x) := a.mantissa (x) - result.mantissa (x);
-      -- end loop;
       m_modulo  :=  result.mantissa'Length / 4;
       remainder :=  result.mantissa'Length mod 4;
       n_index   := result.mantissa'First;
@@ -573,11 +572,11 @@ package body Arbitrary is
       result := a;
       if a.exponent /= b.exponent then
         Shift_Right (result, abs (b.exponent - a.exponent));
-                              -- ^-- need more tests :-)
+        -- Need more tests     --^--
+        -- This value "abs (b.exponent - a.exponent)" worked. But don't hurt
+        -- more extensively tests from users :-D
+        -- Enjoy!!! :-D
       end if;
-      -- for x in result.mantissa'range loop
-      --   result.mantissa (x) := result.mantissa (x) - b.mantissa (x);
-      -- end loop;
       m_modulo  :=  result.mantissa'Length / 4;
       remainder :=  result.mantissa'Length mod 4;
       n_index   := result.mantissa'First;
@@ -622,16 +621,14 @@ package body Arbitrary is
   -- Compute a * b
   -----------------------------------------------------------------------
   function "*"(a, b : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (
-      Integer'Max (a.precision, b.precision));
-    offset    : Integer;  -- offset in result;
+    result    : Arbitrary_Type (Integer'Max (a.precision, b.precision));
+    offset    : Integer := 0;  -- offset in result;
   begin
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
         raise Constraint_Error;
       end if;
     end if;
-    offset := 0;
     for x in b.mantissa'Range loop
       for y in a.mantissa'First .. a.mantissa'Last - offset loop
         result.mantissa (offset + y) :=
@@ -649,11 +646,13 @@ package body Arbitrary is
   -- Compute a / b
   -----------------------------------------------------------------------
   function "/"(a, b : Arbitrary_Type) return Arbitrary_Type is
-    result        : Arbitrary_Type (a.precision);
-    denominator   : Arbitrary_Type (a.precision);
-    numerator     : Arbitrary_Type (a.precision);
-    temp          : Integer;
+    result      : Arbitrary_Type (a.precision);
+    denominator : Arbitrary_Type  :=  b;
+    numerator   : Arbitrary_Type  :=  a;
   begin
+    numerator.sign    := 1;
+    denominator.sign  := 1;
+
     if DEBUG_CHECKS then
       if a.precision /= b.precision then
         raise Constraint_Error;
@@ -665,15 +664,10 @@ package body Arbitrary is
     if a = To_Arbitrary (0, a.precision) then
       return To_Arbitrary (0, a.precision);
     end if;
-    numerator := a;
-    numerator.sign := 1;
-    denominator := b;
-    denominator.sign := 1;
 
     -- The result's exponent will be the numerator's exponent
     -- minus the denominators exponent
-    temp := numerator.exponent - denominator.exponent;
-    result.exponent := temp;
+    result.exponent := numerator.exponent - denominator.exponent;
 
     -- Now adjust the denominator's exponent such that we start getting
     -- digits for the result immediately
@@ -701,21 +695,21 @@ package body Arbitrary is
   is
     chr_pos   : constant  Natural   :=  Character'Pos ('0');
     exp_str   : constant  String    :=  a.exponent'Image;
-    temp_str  : String (1 .. a.mantissa.all'Length + exp_str'Length + 7) :=
+    temp_str  : String (1 .. a.mantissa'Length + exp_str'Length + 7) :=
       (others => '0');
     n_index   : Natural             :=  temp_str'First;
-    m_first   : constant  Natural   :=  a.mantissa.all'First;
+    m_first   : constant  Natural   :=  a.mantissa'First;
   begin
     if a.sign < 0 then
       temp_str (n_index)  := '-';
       n_index :=  n_index + 1;
     end if;
-    temp_str (n_index)  :=  Character'Val (a.mantissa.all (m_first) + chr_pos);
+    temp_str (n_index)  :=  Character'Val (a.mantissa (m_first) + chr_pos);
     temp_str (n_index + 1)  := '.';
     n_index :=  n_index + 2;
 
     loop1 :
-    for E of a.mantissa.all (m_first + 1 .. a.mantissa.all'Last) loop
+    for E of a.mantissa.all (m_first + 1 .. a.mantissa'Last) loop
       temp_str (n_index)  :=  Character'Val (E + chr_pos);
       n_index :=  n_index + 1;
     end loop loop1;
