@@ -19,11 +19,10 @@ is
 
   function to_str (a : Arbitrary_Type)  return String
     with pure_function;
-  procedure Clear (a : out Arbitrary_Type);
+  procedure Clear (a : in out Arbitrary_Type);
 
   function To_Arbitrary (value : Integer; precision : Integer)
-  return Arbitrary_Type
-    with inline; --, pure_function ?
+    return Arbitrary_Type;
 
   function Factorial (n : Integer; precision : Integer) return Arbitrary_Type
     with inline;
@@ -42,9 +41,9 @@ is
   function "<="(a, b : Arbitrary_Type) return Boolean;
 
   function "+"(a : Arbitrary_Type) return Arbitrary_Type
-    with inline;
+    with inline, pure_function;
   function "-"(a : Arbitrary_Type) return Arbitrary_Type
-    with inline;
+    with inline, pure_function;
 
   function "+"(a, b : Arbitrary_Type) return Arbitrary_Type;
   function "-"(a, b : Arbitrary_Type) return Arbitrary_Type;
@@ -58,7 +57,10 @@ private
   base    : constant Integer := 10;
   fbase   : constant Float   := Float (base);
 
-  type Mantissa_Type is array (Positive range <>) of Integer;
+  type Mantissa_Type is array (Positive range <>) of Integer
+    with  preelaborable_initialization,
+          default_component_value => 0;
+
   type Mantissa_Pointer is access Mantissa_Type;
 
   type Arbitrary_Type (size : Positive) is
@@ -66,11 +68,16 @@ private
       mantissa    : Mantissa_Pointer;
       exponent    : Integer;
       sign        : Integer range -1 .. 1;
-      precision   : Positive := size;
+      precision   : Positive;
   end record;
 
+  overriding
   procedure Initialize (Object : in out Arbitrary_Type);
+
+  overriding
   procedure Adjust (Object : in out Arbitrary_Type);
+
+  overriding
   procedure Finalize (Object : in out Arbitrary_Type);
 
 end Arbitrary;

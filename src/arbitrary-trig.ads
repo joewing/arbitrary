@@ -6,7 +6,9 @@
 pragma Ada_2012;
 pragma Detect_Blocking;
 
-package Arbitrary.Trig is
+package Arbitrary.Trig
+  with preelaborate
+is
 
   function Sin (a : Arbitrary_Type) return Arbitrary_Type;
   function Cos (a : Arbitrary_Type) return Arbitrary_Type;

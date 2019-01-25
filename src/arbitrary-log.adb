@@ -43,17 +43,16 @@ package body Arbitrary.Log is
   function Ln2 (precision : Integer) return Arbitrary_Type is
     result      : Arbitrary_Type (precision);
     nlast       : Arbitrary_Type (precision);
-    over_two    : constant Arbitrary_Type -- 1/2^1 (1/2^x)
-      :=  To_Arbitrary (1, precision) / To_Arbitrary (2, precision);
-    one          : constant Arbitrary_Type (precision)
-      :=  To_Arbitrary (1, precision);
+    one         : constant Arbitrary_Type :=  To_Arbitrary (1, precision);
+    over_two    : constant Arbitrary_Type (precision) -- 1/2^1 (1/2^x)
+      :=  one / To_Arbitrary (2, precision);
     multiplier  : Arbitrary_Type := over_two;
-    count        : Arbitrary_Type := one;
+    count       : Arbitrary_Type := one;
   begin
     -- ln(2) = sum(1/(x*2^x))
     loop
-      nlast := result;
-      result := result + (multiplier / count);
+      nlast   := result;
+      result  := result + (multiplier / count);
       exit when nlast = result;
       multiplier := multiplier * over_two;
       count := count + one;
@@ -76,7 +75,7 @@ package body Arbitrary.Log is
 
   function Ln_Small (a : Arbitrary_Type) return Arbitrary_Type is
     one     : constant  Arbitrary_Type  :=  To_Arbitrary (1, a.precision);
-    temp    : constant  Arbitrary_Type            :=  a - one;
+    temp    : constant  Arbitrary_Type  :=  a - one;
     term    : Arbitrary_Type            :=  temp;
     count   : Arbitrary_Type            :=  one;
     result  : Arbitrary_Type (a.precision);

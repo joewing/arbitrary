@@ -5,7 +5,9 @@
 pragma Ada_2012;
 pragma Detect_Blocking;
 
-package Arbitrary.Log is
+package Arbitrary.Log
+  with preelaborate
+is
 
   function Exp (a : Arbitrary_Type) return Arbitrary_Type;
 

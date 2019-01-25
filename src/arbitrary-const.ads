@@ -5,7 +5,9 @@
 pragma Ada_2012;
 pragma Detect_Blocking;
 
-package Arbitrary.Const is
+package Arbitrary.Const
+  with preelaborate
+is
 
   function Pi (precision : Integer) return Arbitrary_Type;
   function Golden_Ratio (precision : Integer) return Arbitrary_Type;

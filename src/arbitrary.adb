@@ -3,33 +3,31 @@
 -- Joe Wingbermuehle 20020320 <> 20020327
 --------------------------------------------------------------------------
 
-
 pragma Ada_2012;
 pragma Detect_Blocking;
 
--- with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 
 package body Arbitrary is
 
   procedure Delete is new Ada.Unchecked_Deallocation (Mantissa_Type,
     Mantissa_Pointer);
-
   -----------------------------------------------------------------------
   -- Initialize an Arbitrary_Type
   -----------------------------------------------------------------------
+  overriding
   procedure Initialize (Object : in out Arbitrary_Type) is
   begin
-    Object.mantissa     := new Mantissa_Type (1 .. Object.precision);
+    Object.precision    := Object.size;
     Object.exponent     := 0;
     Object.sign         := 1;
-    -- "here" for diminish race condition from OS' s
-    Object.mantissa.all := (others => 0);
+    Object.mantissa     := new Mantissa_Type (1 .. Object.size);
   end Initialize;
 
   -----------------------------------------------------------------------
   -- Fix an Arbitrary_Type after being assigned a value
   -----------------------------------------------------------------------
+  overriding
   procedure Adjust (Object : in out Arbitrary_Type) is
   begin
     Object.mantissa := new Mantissa_Type'(Object.mantissa.all);
@@ -112,6 +110,12 @@ package body Arbitrary is
     end if;
 
     loop
+      if a.mantissa (a.mantissa'First + 1 .. a.mantissa'Last) =
+        Mantissa_Type'(1 .. a.mantissa'Length - 1 => 0)
+      then
+        goto continue_line1;
+      end if;
+
       for x in a.mantissa'First + 1 .. a.mantissa'Last loop
         if a.mantissa (x) >= base then -- ? :-) ?
           temp                := a.mantissa (x);
@@ -126,6 +130,8 @@ package body Arbitrary is
           changed             := True;
         end if;
       end loop;
+
+      <<continue_line1>>
       if a.mantissa (a.mantissa'First) >= base then
         carry := a.mantissa (a.mantissa'First) / base;
         temp := a.mantissa (a.mantissa'First) mod base;
@@ -159,7 +165,7 @@ package body Arbitrary is
   -- Set an Arbitrary_Type to zero
   -- (This is done in the Initializer)
   -----------------------------------------------------------------------
-  procedure Clear (a : out Arbitrary_Type) is
+  procedure Clear (a : in out Arbitrary_Type) is
   begin
     a.mantissa.all  := (others => 0);
     a.exponent      := 0;
