@@ -7,12 +7,13 @@ project Build is
   for exec_dir    use "bin";
   for main        use ("examples/root2.adb", "examples/pi.adb",
                       "examples/ln2.adb", "examples/golden_ratio.adb",
-                      "examples/e.adb");
+                      "examples/e.adb", "examples/test_plus_and_minus.adb");
 
   package builder is
-    for switches ("Ada") use ( "-Ofast", "-gnat2012", "-gnatf"
-                              , "-gnaty2abCefhiklmnprst"
-                              );
+    for switches ("Ada") use ("-gnaty2abCefhiklmnprst", "-O2", "-gnat2012",
+                              "-gnatf" );
+      -- for debug switches use  "-g", "-Og", "-gnat2012", "-gnatf" :-)
+
   end builder;
 
 end Build;

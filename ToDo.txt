@@ -1,0 +1,10 @@
+Add:
+function "+"(a : String) return Arbitrary_Type;
+function is_integer (a : Arbitrary_Type) return Boolean;
+function to_integer (a : Arbitrary_Type) return Arbitrary_Type;
+procedure to_integer (a : in out Arbitrary_Type);
+
+and more stuff for Arbitrary_Type as integer type.
+
+With mostly changes done,
+make a shared lib and a static lib. :-)

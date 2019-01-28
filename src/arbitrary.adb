@@ -112,7 +112,8 @@ package body Arbitrary is
     loop
       if a.mantissa (a.mantissa'First + 1 .. a.mantissa'Last) =
         Mantissa_Type'(1 .. a.mantissa'Length - 1 => 0)
-      then
+      then -- A great qtie of functions use this base case really many times.
+          --  The speed up is considerable :-)
         goto continue_line1;
       end if;
 
@@ -696,6 +697,24 @@ package body Arbitrary is
     Normalize (result);
     return result;
   end "/";
+
+  function "+"(a : Arbitrary_Type; b : Integer) return Arbitrary_Type
+  is (a + To_Arbitrary (b, a.precision));
+
+  function "+"(a : Integer; b : Arbitrary_Type) return Arbitrary_Type
+  is (To_Arbitrary (a, b.precision) + b);
+
+  function "-"(a : Arbitrary_Type; b : Integer) return Arbitrary_Type
+  is (a - To_Arbitrary (b, a.precision));
+
+  function "-"(a : Integer; b : Arbitrary_Type) return Arbitrary_Type
+  is (To_Arbitrary (a, b.precision) - b);
+
+  function "+"(a, b : Integer) return Arbitrary_Type
+  is (To_Arbitrary (a + b, String'(Integer'(a + b)'Image)'Length * 2));
+
+  function "-"(a, b : Integer) return Arbitrary_Type
+  is (To_Arbitrary (a - b, String'(Integer'(a + b)'Image)'Length * 2));
 
   function to_str (a : Arbitrary_Type)  return String
   is

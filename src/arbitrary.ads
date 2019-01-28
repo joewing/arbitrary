@@ -52,6 +52,13 @@ is
   function "/"(a, b : Arbitrary_Type) return Arbitrary_Type
     with inline;
 
+  function "+"(a : Arbitrary_Type; b : Integer) return Arbitrary_Type;
+  function "+"(a : Integer; b : Arbitrary_Type) return Arbitrary_Type;
+  function "-"(a : Arbitrary_Type; b : Integer) return Arbitrary_Type;
+  function "-"(a : Integer; b : Arbitrary_Type) return Arbitrary_Type;
+  function "+"(a, b : Integer) return Arbitrary_Type;
+  function "-"(a, b : Integer) return Arbitrary_Type;
+
 private
 
   base    : constant Integer := 10;
