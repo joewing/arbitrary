@@ -5,9 +5,8 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Arbitrary; use Arbitrary;
 
 procedure Root2 is
-
-  precision    : Integer;
-
+  precision   : Integer;
+  result      : Arbitrary_Type;
 begin
 
   if Argument_Count /= 1 then
@@ -17,11 +16,7 @@ begin
 
   precision := Integer'Value (Argument (1));
 
-  declare
-    result    : Arbitrary_Type (precision);
-  begin
-    result := Square_Root (To_Arbitrary (2, precision));
-    Put_Line (to_str (result));
-  end;
+  result := Square_Root (To_Arbitrary (2, precision));
+  Put_Line (to_str (result));
 
 end Root2;

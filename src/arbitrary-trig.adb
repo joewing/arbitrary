@@ -3,24 +3,22 @@
 -- Joe Wingbermuehle 20020320 <> 20020327
 --------------------------------------------------------------------------
 
-pragma Ada_2012;
-pragma Detect_Blocking;
-
 with Arbitrary.Log; use Arbitrary.Log;
 with Arbitrary.Const; use Arbitrary.Const;
 
-package body Arbitrary.Trig is
+package body Arbitrary.Trig
+  with Preelaborate
+is
 
   -----------------------------------------------------------------------
   -- Compute the sine of a
   -----------------------------------------------------------------------
   function Sin (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
-    last      : Arbitrary_Type (a.precision);
-    count     : Arbitrary_Type (a.precision);
-    term      : Arbitrary_Type (a.precision);
-    one       : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (1, a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
+    last      : Arbitrary_Type := To_Arbitrary (a.precision);
+    count     : Arbitrary_Type := To_Arbitrary (a.precision);
+    term      : Arbitrary_Type := To_Arbitrary (a.precision);
+    one       : constant Arbitrary_Type :=  To_Arbitrary (1, a.precision);
     sign      : Integer range -1 .. 1;
   begin
     -- sin(x) = x - x^3/3! + x^5/5! - x^7/7! + ...
@@ -49,12 +47,11 @@ package body Arbitrary.Trig is
   -- Compute the cosine of a
   -----------------------------------------------------------------------
   function Cos (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
-    last      : Arbitrary_Type (a.precision);
-    term      : Arbitrary_Type (a.precision);
-    count     : Arbitrary_Type (a.precision);
-    one       : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (1, a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
+    last      : Arbitrary_Type := To_Arbitrary (a.precision);
+    term      : Arbitrary_Type := To_Arbitrary (a.precision);
+    count     : Arbitrary_Type := To_Arbitrary (a.precision);
+    one       : constant Arbitrary_Type :=  To_Arbitrary (1, a.precision);
     sign      : Integer range -1 .. 1;
   begin
     -- cos(x) = 1 - x^2/2! + x^4/4! - x^6/6! + ...
@@ -121,12 +118,11 @@ package body Arbitrary.Trig is
   -- Compute the inverse sine of a
   -----------------------------------------------------------------------
   function ArcSin (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
-    last      : Arbitrary_Type (a.precision);
-    term      : Arbitrary_Type (a.precision);
-    count     : Arbitrary_Type (a.precision);
-    one       : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (1, a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
+    last      : Arbitrary_Type := To_Arbitrary (a.precision);
+    term      : Arbitrary_Type := To_Arbitrary (a.precision);
+    count     : Arbitrary_Type := To_Arbitrary (a.precision);
+    one       : constant Arbitrary_Type :=  To_Arbitrary (1, a.precision);
   begin
     -- asin(x) = x + (1/6)x^3 + (3/40)x^5 + (5/112)x^7 + ...
     -- each term: 1^2*3^2*5^2*...*(n-2)^2/n! * x^n for n=1,3,5,7,...
@@ -150,7 +146,7 @@ package body Arbitrary.Trig is
   -- Compute the inverse cosine of a
   -----------------------------------------------------------------------
   function ArcCos (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
   begin
     -- acos(x) = pi/2 - x - (1/6)x^3 - (3/40)x^5 - (5/112)x^7 - ...
     -- acos(x) = pi/2 - asin(x)
@@ -163,11 +159,11 @@ package body Arbitrary.Trig is
   -- Compute the inverse tangent of a
   -----------------------------------------------------------------------
   function ArcTan (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
-    last      : Arbitrary_Type (a.precision);
-    term      : Arbitrary_Type (a.precision);
-    count     : Arbitrary_Type (a.precision);
-    two       : constant Arbitrary_Type (a.precision) :=
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
+    last      : Arbitrary_Type := To_Arbitrary (a.precision);
+    term      : Arbitrary_Type := To_Arbitrary (a.precision);
+    count     : Arbitrary_Type := To_Arbitrary (a.precision);
+    two       : constant Arbitrary_Type :=
               To_Arbitrary (2, a.precision);
     sign      : Integer range -1 .. 1;
   begin
@@ -194,12 +190,11 @@ package body Arbitrary.Trig is
   -- Compute the inverse cosecant of a
   -----------------------------------------------------------------------
   function ArcCsc (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
-    last      : Arbitrary_Type (a.precision);
-    term      : Arbitrary_Type (a.precision);
-    count     : Arbitrary_Type (a.precision);
-    one       : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (1, a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
+    last      : Arbitrary_Type := To_Arbitrary (a.precision);
+    term      : Arbitrary_Type := To_Arbitrary (a.precision);
+    count     : Arbitrary_Type := To_Arbitrary (a.precision);
+    one       : constant Arbitrary_Type :=  To_Arbitrary (1, a.precision);
   begin
     -- acsc(x) = x^-1 + (1/6)x^-3 + (3/40)x^-5 + ...
     term := one / a;
@@ -222,7 +217,7 @@ package body Arbitrary.Trig is
   -- Compute the inverse secant of a
   -----------------------------------------------------------------------
   function ArcSec (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
   begin
     -- asec(x) = pi/2 - acsc(x)
     result := Pi (a.precision) / To_Arbitrary (2, a.precision);
@@ -234,7 +229,7 @@ package body Arbitrary.Trig is
   -- Compute the inverse cotangent of a
   -----------------------------------------------------------------------
   function ArcCot (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
   begin
     -- acot(x) = pi/2 - x + (1/3)x^3 - (1/5)x^5 + ...
     -- acot(x) = pi/2 - atan(x)
@@ -265,9 +260,8 @@ package body Arbitrary.Trig is
   -- Compute the hyperbolic tangent of a
   -----------------------------------------------------------------------
   function Tanh (a : Arbitrary_Type) return Arbitrary_Type is
-    one    : constant Arbitrary_Type (a.precision) :=
-            To_Arbitrary (1, a.precision);
-    exp2x  : Arbitrary_Type (a.precision);
+    one    : constant Arbitrary_Type := To_Arbitrary (1, a.precision);
+    exp2x  : Arbitrary_Type := To_Arbitrary (a.precision);
   begin
     -- tanh(x) = (e^(2x) - 1) / (e^(2x) + 1)
     exp2x := Exp (a * To_Arbitrary (2, a.precision));
@@ -296,9 +290,8 @@ package body Arbitrary.Trig is
   -- Compute the hyperbolic cotangent of a
   -----------------------------------------------------------------------
   function Coth (a : Arbitrary_Type) return Arbitrary_Type is
-    one    : constant Arbitrary_Type (a.precision) :=
-            To_Arbitrary (1, a.precision);
-    exp2x  : Arbitrary_Type (a.precision);
+    one    : constant Arbitrary_Type := To_Arbitrary (1, a.precision);
+    exp2x  : Arbitrary_Type := To_Arbitrary (a.precision);
   begin
     -- coth(x) = (e^(2x) + 1) / (e^(2x) - 1)
     exp2x := Exp (a * To_Arbitrary (2, a.precision));
@@ -309,12 +302,11 @@ package body Arbitrary.Trig is
   -- Compute the inverse hyperbolic sine of a
   -----------------------------------------------------------------------
   function ArcSinh (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
-    last      : Arbitrary_Type (a.precision);
-    term      : Arbitrary_Type (a.precision);
-    count     : Arbitrary_Type (a.precision);
-    one       : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (1, a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
+    last      : Arbitrary_Type := To_Arbitrary (a.precision);
+    term      : Arbitrary_Type := To_Arbitrary (a.precision);
+    count     : Arbitrary_Type := To_Arbitrary (a.precision);
+    one       : constant Arbitrary_Type :=  To_Arbitrary (1, a.precision);
     sign      : Integer range -1 .. 1;
   begin
     -- asinh(x) = ln(x + sqrt(1 + x^2))
@@ -354,12 +346,11 @@ package body Arbitrary.Trig is
   -- Compute the inverse hyperbolic tangent of a
   -----------------------------------------------------------------------
   function ArcTanh (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
-    last      : Arbitrary_Type (a.precision);
-    term      : Arbitrary_Type (a.precision);
-    count     : Arbitrary_Type (a.precision);
-    one       : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (1, a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
+    last      : Arbitrary_Type := To_Arbitrary (a.precision);
+    term      : Arbitrary_Type := To_Arbitrary (a.precision);
+    count     : Arbitrary_Type := To_Arbitrary (a.precision);
+    one       : constant Arbitrary_Type :=  To_Arbitrary (1, a.precision);
   begin
     -- atanh(x) = x + x^3/3 + x^5/5 + x^7/7 + x^9/9 + ...
     term := a;
@@ -378,12 +369,11 @@ package body Arbitrary.Trig is
   -- Compute the inverse hyperbolic cosecant of a
   -----------------------------------------------------------------------
   function ArcCsch (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
-    last      : Arbitrary_Type (a.precision);
-    term      : Arbitrary_Type (a.precision);
-    count     : Arbitrary_Type (a.precision);
-    one       : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (1, a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
+    last      : Arbitrary_Type := To_Arbitrary (a.precision);
+    term      : Arbitrary_Type := To_Arbitrary (a.precision);
+    count     : Arbitrary_Type := To_Arbitrary (a.precision);
+    one       : constant Arbitrary_Type :=  To_Arbitrary (1, a.precision);
     sign      : Integer range  -1 .. 1;
   begin
     -- acsch(x) = x^-1 - (1/6)x^-3 + (3/40)x^-5 - (5/112)x^-7 + ...
@@ -413,8 +403,7 @@ package body Arbitrary.Trig is
   -- Compute the inverse hyperbolic secant of a
   -----------------------------------------------------------------------
   function ArcSech (a : Arbitrary_Type) return Arbitrary_Type is
-    one    : constant Arbitrary_Type (a.precision) :=
-            To_Arbitrary (1, a.precision);
+    one    : constant Arbitrary_Type := To_Arbitrary (1, a.precision);
   begin
     -- asech(x) = ln((1 +/- sqrt(1 - x^2)) / x)
     return Ln ((one + Square_Root (one - a * a)) / a);
@@ -424,14 +413,12 @@ package body Arbitrary.Trig is
   -- Compute the inverse hyperbolic cotangent of a
   -----------------------------------------------------------------------
   function ArcCoth (a : Arbitrary_Type) return Arbitrary_Type is
-    result    : Arbitrary_Type (a.precision);
-    last      : Arbitrary_Type (a.precision);
-    term      : Arbitrary_Type (a.precision);
-    count      : Arbitrary_Type (a.precision);
-    one      : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (1, a.precision);
-    two      : constant Arbitrary_Type (a.precision) :=
-              To_Arbitrary (2, a.precision);
+    result    : Arbitrary_Type := To_Arbitrary (a.precision);
+    last      : Arbitrary_Type := To_Arbitrary (a.precision);
+    term      : Arbitrary_Type := To_Arbitrary (a.precision);
+    count      : Arbitrary_Type := To_Arbitrary (a.precision);
+    one      : constant Arbitrary_Type := To_Arbitrary (1, a.precision);
+    two      : constant Arbitrary_Type := To_Arbitrary (2, a.precision);
   begin
     -- acoth(x) = x^-1 + (1/3)x^-3 + (1/5)x^-5 + ...
     term := one / a;

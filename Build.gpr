@@ -1,6 +1,7 @@
 
 
 project Build is
+  for Languages use ("Ada");
 
   for source_dirs use ("src", "examples" );
   for object_dir  use "obj";
@@ -9,11 +10,31 @@ project Build is
                       "examples/ln2.adb", "examples/golden_ratio.adb",
                       "examples/e.adb", "examples/test_plus_and_minus.adb");
 
-  package builder is
-    for switches ("Ada") use ("-gnaty2abCefhiklmnprst", "-O2", "-gnat2012",
-                              "-gnatf" );
-      -- for debug switches use  "-g", "-Og", "-gnat2012", "-gnatf" :-)
+  type Mode_type is ("debug", "release");
+  Modu : Mode_type := external ("mod", "release");
 
-  end builder;
+  package Builder is
+  end Builder;
+
+  package Compiler is
+    case Modu is
+      when "debug" =>
+        for switches ("Ada")
+          use ("-Og", "-g", "-gnat12", "-gnatf", "-gnaty2abCefhiklmnprst");
+
+      when "release" =>
+        for switches ("Ada")
+          use ("-O2", "-gnat12", "-gnatf", "-gnaty2abCefhiklmnprst");
+      end case;
+  end compiler;
+
+  package Binder is
+  end Binder;
+
+  package Linker is
+  end Linker;
+
+  package Install is
+  end Install;
 
 end Build;

@@ -6,7 +6,8 @@ with Arbitrary; use Arbitrary;
 with Arbitrary.Const; use Arbitrary.Const;
 
 procedure Golden_Ratio is
-  precision    : Integer;
+  precision   : Integer;
+  result      : Arbitrary_Type;
 begin
 
   if Argument_Count /= 1 then
@@ -16,14 +17,8 @@ begin
 
   precision := Integer'Value (Argument (1));
 
-  declare
-    result    : Arbitrary_Type (precision);
-  begin
+  result := Golden_Ratio (precision);
 
-    result := Golden_Ratio (precision);
-
-    Put_Line (to_str (result));
-
-  end;
+  Put_Line (to_str (result));
 
 end Golden_Ratio;

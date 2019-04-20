@@ -2,34 +2,35 @@
 -- Arbitrary Precision Math Library
 -- Joe Wingbermuehle 20020320 <> 20020327
 --------------------------------------------------------------------------
-pragma Ada_2012;
-pragma Detect_Blocking;
 
-with Ada.Finalization;
+with Ada.Finalization;  use Ada.Finalization;
 
 package Arbitrary
   with preelaborate
 is
 
   -- Set to false for increased speed
-  DEBUG_CHECKS  : Boolean  := False;
+  function DEBUG_CHECKS  return Boolean is (False)
+    with inline, pure_function;
 
-  type Arbitrary_Type (size : Positive) is
-    new Ada.Finalization.Controlled with private;
+  type Arbitrary_Type is private;
 
-  function to_str (a : Arbitrary_Type)  return String
+  function to_str (self : Arbitrary_Type)  return String
     with pure_function;
   procedure Clear (a : in out Arbitrary_Type);
 
-  function To_Arbitrary (value : Integer; precision : Integer)
-    return Arbitrary_Type;
+  function To_Arbitrary (value : Integer; precision : Positive)
+    return Arbitrary_Type with inline, pure_function;
+
+  function To_Arbitrary (precision : Positive)
+    return Arbitrary_Type with inline, pure_function;
 
   function Factorial (n : Integer; precision : Integer) return Arbitrary_Type
-    with inline;
+    with inline,  pure_function;
 
   function One_Over_Factorial (n : Integer; precision : Integer)
     return Arbitrary_Type
-      with inline;
+      with inline, pure_function;
 
   function Square_Root (a : Arbitrary_Type) return Arbitrary_Type;
 
@@ -45,12 +46,14 @@ is
   function "-"(a : Arbitrary_Type) return Arbitrary_Type
     with inline, pure_function;
 
-  function "+"(a, b : Arbitrary_Type) return Arbitrary_Type;
-  function "-"(a, b : Arbitrary_Type) return Arbitrary_Type;
+  function "+"(a, b : Arbitrary_Type) return Arbitrary_Type
+     with pure_function;
+  function "-"(a, b : Arbitrary_Type) return Arbitrary_Type
+     with pure_function;
   function "*"(a, b : Arbitrary_Type) return Arbitrary_Type
-    with inline;
+    with inline,  pure_function;
   function "/"(a, b : Arbitrary_Type) return Arbitrary_Type
-    with inline;
+    with inline,  pure_function;
 
   function "+"(a : Arbitrary_Type; b : Integer) return Arbitrary_Type;
   function "+"(a : Integer; b : Arbitrary_Type) return Arbitrary_Type;
@@ -70,13 +73,15 @@ private
 
   type Mantissa_Pointer is access Mantissa_Type;
 
-  type Arbitrary_Type (size : Positive) is
-    new Ada.Finalization.Controlled with record
-      mantissa    : Mantissa_Pointer;
-      exponent    : Integer;
+  type Arbitrary_Type is new Controlled with
+  record
+      precision   : Positive  :=  1;
+      exponent    : Integer   :=  0;
       sign        : Integer range -1 .. 1;
-      precision   : Positive;
-  end record;
+      mantissa    : Mantissa_Pointer := null;
+  end record
+  with preelaborable_initialization;
+
 
   overriding
   procedure Initialize (Object : in out Arbitrary_Type);

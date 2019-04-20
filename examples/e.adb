@@ -6,7 +6,8 @@ with Arbitrary; use Arbitrary;
 with Arbitrary.Log; use Arbitrary.Log;
 
 procedure E is
-  precision    : Integer;
+  precision   : Integer;
+  result      : Arbitrary_Type;
 begin
 
   if Argument_Count /= 1 then
@@ -16,14 +17,8 @@ begin
 
   precision := Integer'Value (Argument (1));
 
-  declare
-    result    : Arbitrary_Type (precision);
-  begin
+  result := Exp (To_Arbitrary (1, precision));
 
-    result := Exp (To_Arbitrary (1, precision));
-
-    Put_Line (to_str (result));
-
-  end;
+  Put_Line (to_str (result));
 
 end E;

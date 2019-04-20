@@ -1,8 +1,10 @@
 
-OPTIONS = -O2 -gnatwa -gnatybm
+#OPTIONS = -O2 -gnatwa -gnatybm
+
+.PHONY:	all,	clean
 
 all:
-	gprbuild -PBuild.gpr
+	gprbuild -p -PBuild.gpr
 
 clean:
 	gprclean -PBuild.gpr

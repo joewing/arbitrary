@@ -3,12 +3,11 @@
 -- Joe Wingbermuehle 20020320 <> 20020327
 --------------------------------------------------------------------------
 
-pragma Ada_2012;
-pragma Detect_Blocking;
-
 with Arbitrary.Trig; use Arbitrary.Trig;
 
-package body Arbitrary.Log is
+package body Arbitrary.Log
+  with Preelaborate
+is
 
   -----------------------------------------------------------------------
   -- Compute e^n
@@ -16,7 +15,7 @@ package body Arbitrary.Log is
   function Exp (a : Arbitrary_Type) return Arbitrary_Type is
     result      : Arbitrary_Type    := To_Arbitrary (2, a.precision);
     multiplier  : Arbitrary_Type    := a;
-    nlast       : Arbitrary_Type (a.precision);
+    nlast       : Arbitrary_Type    := To_Arbitrary (a.precision);
     count       : Integer           := 2;
   begin
     loop
@@ -41,30 +40,37 @@ package body Arbitrary.Log is
   -- Compute ln(2)
   -----------------------------------------------------------------------
   function Ln2 (precision : Integer) return Arbitrary_Type is
-    result      : Arbitrary_Type (precision);
-    nlast       : Arbitrary_Type (precision);
+    result      : Arbitrary_Type := To_Arbitrary (precision);
+    nlast       : Arbitrary_Type := To_Arbitrary (precision);
     one         : constant Arbitrary_Type :=  To_Arbitrary (1, precision);
-    over_two    : constant Arbitrary_Type (precision) -- 1/2^1 (1/2^x)
-      :=  one / To_Arbitrary (2, precision);
-    multiplier  : Arbitrary_Type := over_two;
-    count       : Arbitrary_Type := one;
+    over_two    : Arbitrary_Type := To_Arbitrary (precision); -- 1/2^1 (1/2^x)
+
   begin
+    over_two  :=  one / To_Arbitrary (2, precision);
+
+    declare_label1 :
+    declare
+      multiplier  : Arbitrary_Type := over_two;
+      count       : Arbitrary_Type := one;
+    begin
+
     -- ln(2) = sum(1/(x*2^x))
-    loop
-      nlast   := result;
-      result  := result + (multiplier / count);
-      exit when nlast = result;
-      multiplier := multiplier * over_two;
-      count := count + one;
+      loop
+        nlast   := result;
+        result  := result + (multiplier / count);
+        exit when nlast = result;
+        multiplier := multiplier * over_two;
+        count := count + one;
 
-      nlast := result;
-      result := result + (multiplier / count);
-      exit when nlast = result;
-      multiplier := multiplier * over_two;
-      count := count + one;
-    end loop;
+        nlast := result;
+        result := result + (multiplier / count);
+        exit when nlast = result;
+        multiplier := multiplier * over_two;
+        count := count + one;
+      end loop;
 
-    return result;
+      return result;
+    end declare_label1;
   end Ln2;
 
   -----------------------------------------------------------------------
@@ -78,8 +84,8 @@ package body Arbitrary.Log is
     temp    : constant  Arbitrary_Type  :=  a - one;
     term    : Arbitrary_Type            :=  temp;
     count   : Arbitrary_Type            :=  one;
-    result  : Arbitrary_Type (a.precision);
-    nlast   : Arbitrary_Type (a.precision);
+    result  : Arbitrary_Type            := To_Arbitrary (a.precision);
+    nlast   : Arbitrary_Type            := To_Arbitrary (a.precision);
     sign    : Integer range -1 .. 1     :=  1;
   begin
     -- ln(1 + x) = x - (1/2)x^2 + (1/3)x^3 - ...

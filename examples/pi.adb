@@ -10,7 +10,8 @@ with Arbitrary; use Arbitrary;
 with Arbitrary.Const; use Arbitrary.Const;
 
 procedure Pi is
-  precision  : Integer;
+  precision   : Integer;
+  result      : Arbitrary_Type;
 begin
 
   if Argument_Count /= 1 then
@@ -20,15 +21,7 @@ begin
 
   precision := Integer'Value (Argument (1));
 
-  declare
-
-    result    : Arbitrary_Type (precision);
-
-  begin
-
-    result := Pi (precision);
-    Put_Line (to_str (result));
-
-  end;
+  result := Pi (precision);
+  Put_Line (to_str (result));
 
 end Pi;
